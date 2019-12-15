@@ -16,10 +16,8 @@ const Renderer_base = {
             let geometry = new THREE.Geometry();
             this.cmap.foreach[this.cmap.vertex](vd => {
                 geometry.vertices.push(position[this.cmap.cell[this.cmap.vertex](vd)])});
-            let material = new THREE.PointsMaterial({color: 0xff0000, size: 0.05});
-            this.points = new THREE.Points(geometry, material); 
-
-            this.points = new THREE.Points(geometry, material); 
+            let material = new THREE.PointsMaterial({color: 0xff0000, size: 0.025});
+			this.points = new THREE.Points(geometry, material); 
             return true;
         },
 
@@ -60,7 +58,12 @@ const Renderer_base = {
                 }
             );
             this.faces = new THREE.Mesh(geometry, material);
-        },
+		},
+		
+	clear: function()
+		{
+			this.points.geometry.dispose()
+		},
 }
 
 function Renderer(cmap)

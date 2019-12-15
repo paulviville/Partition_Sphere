@@ -26,13 +26,39 @@ window.addEventListener( 'keyup', onKeyUp, false );
 // SCENE RENDERING
 function start()
 {
-    init_scene();
+	init_scene();
+	// test_set0();
     rendering_loop();
 }
 
+var MODE_VORONOI = 0;
+var MODE_ITERATIVE = 1;
+var mode = MODE_ITERATIVE;
+var requires_update = false;
 function update() 
 {
+	if(requires_update)
+	{
+		requires_update = false;
+		switch(mode)
+		{
+			case MODE_VORONOI:
+				if(points.length > 3)
+				{
+					update_delaunay();
+					update_voronoi();
+				}
+				break;
+			case MODE_ITERATIVE:
+				if(points.length > 2)
+				{
+					update_iteration();
+				}
+				break;
+			default:
 
+		}
+	}
 }
 
 function render() 
@@ -55,12 +81,12 @@ start();
 let keys = new Array(256);
 function onKeyDown(event)
 {
-    console.log(event.which);
     keys[event.which] = true;
 }
 
 function onKeyUp(event)
 {
+    console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
 
@@ -90,8 +116,8 @@ function onMouseMove(event)
         
         selected.position.applyQuaternion(quat);
         selected.userData.branch_line.geometry.verticesNeedUpdate = true;
-
 	}
+	requires_update = true;
 }
 
 function onMouseUp(event)
@@ -117,7 +143,7 @@ function onMouseDown(event)
                 if(keys[65]) //a
                 {
                     create_branch(intersections[0].point);
-
+					requires_update = true;
                 }
             }
             else
@@ -235,20 +261,38 @@ var delaunay_map;
 var delaunay_renderer;
 var voronoi_map;
 var voronoi_renderer;
+var showing_delaunay = true;
+var showing_convexhull = false;
+var showing_voronoi = true;
 function create_delaunay()
 {
     delaunay_map = delaunay(points);
-    delaunay_renderer = Renderer_Sphere(delaunay_map);
+	delaunay_renderer = Renderer_Sphere(delaunay_map);
+
 }
 
 function show_delaunay()
 {
-    delaunay_renderer.create_geodesics(0xFF00FF);
+	showing_delaunay = true;
+	delaunay_renderer.create_geodesics(0xFF00FF);
     scene.add(delaunay_renderer.geodesics);
+}
+
+function update_delaunay()
+{
+	if(delaunay_renderer)
+	{
+		scene.remove(delaunay_renderer.geodesics);
+		scene.remove(delaunay_renderer.edges);
+	}
+	
+	create_delaunay();
+	if(showing_delaunay) show_delaunay();
 }
 
 function hide_delaunay()
 {
+	showing_delaunay = false;
     scene.remove(delaunay_renderer.geodesics);
 }
 
@@ -261,4 +305,90 @@ function show_convexhull()
 function hide_convexhull()
 {
     scene.remove(delaunay_renderer.edges);
+}
+
+function create_voronoi()
+{
+    voronoi_map = voronoi(delaunay_map);
+	voronoi_renderer = Renderer_Sphere(voronoi_map);
+}
+
+function update_voronoi()
+{
+	if(voronoi_renderer)
+	{
+		scene.remove(voronoi_renderer.geodesics);
+		scene.remove(voronoi_renderer.points);
+	}
+
+	create_voronoi();
+	if(showing_voronoi) show_voronoi();
+}
+
+function show_voronoi()
+{
+	showing_voronoi = true;
+	voronoi_renderer.create_geodesics(0xFFFF00);
+	voronoi_renderer.create_points();
+    scene.add(voronoi_renderer.points);
+    scene.add(voronoi_renderer.geodesics);
+}
+
+function hide_voronoi()
+{
+	showing_voronoi = false;
+	scene.remove(voronoi_renderer.geodesics);
+    scene.remove(voronoi_renderer.points);
+}
+
+
+
+// ITERATIVE PARTITION
+var iteration_map;
+var iteration_renderer;
+var showing_iteration = true;
+
+function create_iteration()
+{
+	iteration_map = iterative_partition(points);
+	iteration_renderer = Renderer_Sphere(iteration_map);
+}
+
+function update_iteration()
+{
+	if(iteration_renderer)
+	{
+		scene.remove(iteration_renderer.points);
+		scene.remove(iteration_renderer.geodesics);
+	}
+
+	create_iteration();
+	if(showing_iteration) show_iteration();
+}
+
+function show_iteration()
+{
+	showing_iteration = true;
+	iteration_renderer.create_points();
+	iteration_renderer.create_geodesics(0x00FFF0);
+	scene.add(iteration_renderer.points);
+	scene.add(iteration_renderer.geodesics);
+}
+
+
+
+
+
+
+
+
+// TEST SETS
+function test_set0()
+{
+	create_branch(new THREE.Vector3(0.6022189360479403, 0.7368469495958743, 0.3072278078829223));
+	create_branch(new THREE.Vector3(-0.13518906815654932, -0.5233125218963196, 0.8413488695407381));
+	create_branch(new THREE.Vector3(0.6333494652638829, 0.19158420104961565, 0.7497759323678848));
+	create_branch(new THREE.Vector3(0.25380677790900835, 0.8896366161154757, -0.3796430043528435));
+	create_branch(new THREE.Vector3(0.27366915301936295, -0.678333516859912, -0.6818862328791571));
+	create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
 }

@@ -56,22 +56,6 @@ function new_geodesic(A, B, nb_divs = 200, out = false)
 	return geodesic;
 }
 
-function get_Qs(A, B, C)
-{
-	let Qs = [];
-	Qs.push(new THREE.Vector3(), new THREE.Vector3())
-	let e0 = new THREE.Vector3();
-	e0.subVectors(B, A);
-	let e1 = new THREE.Vector3();
-	e1.subVectors(C, A);
-	let medAxis = new THREE.Vector3();
-	medAxis.crossVectors(e0, e1);
-	medAxis.normalize();
-	Qs[0].add(medAxis);
-	Qs[1].sub(medAxis);
-	return Qs;
-}
-
 function in_sphere_triangle(P, U, V, W)
 {
 	let n0 = new THREE.Vector3();
@@ -82,6 +66,12 @@ function in_sphere_triangle(P, U, V, W)
 	n2.copy(W).cross(U);
 
 	return (P.dot(n0) > 0 && P.dot(n1) > 0 && P.dot(n2) > 0);
+}
+
+function in_sphere_quad(P, U, V, W, X)
+{
+    return in_sphere_triangle(P, U, V, W) || in_sphere_triangle(P, W, X, U); 
+
 }
 
 function triangle_onsphere_circumcenter(a, b, c)

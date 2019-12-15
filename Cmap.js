@@ -408,7 +408,6 @@ function CMap2()
 				cmap2.foreach_dart_phi12(vd,
 					d => {
 						cmap2.set_embedding[cmap2.vertex](d, vid);
-						console.log(d, vid);
 					}
 				);
 			});
@@ -449,6 +448,11 @@ function CMap2()
 					cmap2.set_embedding[cmap2.vertex](d1, vid);
 					cmap2.set_embedding[cmap2.vertex](e1, vid);
 				}
+				if(cmap2.is_embedded[cmap2.face]())
+				{
+					cmap2.set_embedding[cmap2.face](d1, cmap2.cell[cmap2.face](d0));
+					cmap2.set_embedding[cmap2.face](e1, cmap2.cell[cmap2.face](e0));
+				}
 			}
 
 			return d1;
@@ -471,6 +475,16 @@ function CMap2()
 				{
 					this.set_embedding[cmap2.vertex](e0, this.cell[this.vertex](this.phi1(this.phi2(e0))));
 					this.set_embedding[cmap2.vertex](e1, this.cell[this.vertex](this.phi1(this.phi2(e1))));
+				}
+				if(this.is_embedded[cmap2.face]())
+				{
+					this.set_embedding[cmap2.face](e0, this.cell[this.face](this.phi1(e0)));
+					let fid = this.new_cell[this.face]();
+					this.foreach_dart_phi1(e1,
+						d => {
+							this.set_embedding[this.face](d, fid);
+						}
+					);
 				}
 			}
 			// if(this._vertex_embedding != undefined)
