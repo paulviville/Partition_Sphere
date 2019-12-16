@@ -38,6 +38,35 @@ var showing = {
     delaunay: false,
 }
 
+var test_sets = {
+    test0: function() {
+        this.reset();
+        create_branch(new THREE.Vector3(0.6022189360479403, 0.7368469495958743, 0.3072278078829223));
+        create_branch(new THREE.Vector3(-0.13518906815654932, -0.5233125218963196, 0.8413488695407381));
+        create_branch(new THREE.Vector3(0.6333494652638829, 0.19158420104961565, 0.7497759323678848));
+        create_branch(new THREE.Vector3(0.25380677790900835, 0.8896366161154757, -0.3796430043528435));
+        create_branch(new THREE.Vector3(0.27366915301936295, -0.678333516859912, -0.6818862328791571));
+        create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
+    },
+
+    nb_branches : 4,
+    random: function(){
+        this.reset();
+        for(let i = 0; i < this.nb_branches; i++)
+        {
+            let v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+
+            create_branch(v);
+        }
+    },
+
+    reset: function(){
+        points = [];
+        while(branch_lines.children.length) branch_lines.remove(branch_lines.children[0]);
+        while(branch_points.children.length) branch_points.remove(branch_points.children[0]);
+    }
+}
+
 // GUI 
 let gui = new dat.GUI({autoPlace: true});
 let gui_params = {iterations: 50};
@@ -52,7 +81,11 @@ folder_voronoi.addColor(colors, 'voronoi_points').onChange(require_update);
 gui.add(showing, "delaunay").onChange(require_update);
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
-
+let folder_test = gui.addFolder("Tests");
+folder_test.add(test_sets, "test0").onChange(require_update);
+folder_test.add(test_sets, "nb_branches").onChange(require_update);
+folder_test.add(test_sets, "random").onChange(require_update);
+gui.add(test_sets, "reset").onChange(require_update);
 
 // SCENE RENDERING
 function start()
@@ -73,15 +106,11 @@ function update()
 	if(requires_update)
 	{
 		requires_update = false;
-		if(VORONOI_ON && points.length > 3)
-        {
-            update_delaunay(showing.delaunay || showing.voronoi);
-            update_voronoi(showing.voronoi);
-        }
-        if(ITERATIVE_ON && points.length > 2)
-        {
-            update_iteration(showing.partition);
-        }
+
+        update_delaunay((showing.delaunay || showing.voronoi) && points.length > 3 );
+        update_voronoi(showing.voronoi && points.length > 3);
+
+        update_iteration(showing.partition && points.length > 2);
 	}
 }
 
@@ -421,5 +450,6 @@ function test_set0()
 	create_branch(new THREE.Vector3(0.25380677790900835, 0.8896366161154757, -0.3796430043528435));
 	create_branch(new THREE.Vector3(0.27366915301936295, -0.678333516859912, -0.6818862328791571));
 	create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
-    requires_update = true;
 }
+
+
