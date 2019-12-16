@@ -23,6 +23,37 @@ window.addEventListener( 'mousedown', onMouseDown, false );
 window.addEventListener( 'keydown', onKeyDown, false );
 window.addEventListener( 'keyup', onKeyUp, false );
 
+var colors = {
+    partition: 0x00c0c0,
+    partition_points: 0xee5500,
+    voronoi: 0x007700,
+    voronoi_points: 0xFF88FF,
+    delaunay: 0x000099,
+    test: false
+};
+
+var showing = {
+    partition: true,
+    voronoi: false,
+    delaunay: false,
+}
+
+// GUI 
+let gui = new dat.GUI({autoPlace: true});
+let gui_params = {iterations: 50};
+gui.add(showing, "partition").onChange(require_update);
+let folder_partition = gui.addFolder("Partition Colors");
+folder_partition.addColor(colors, 'partition').onChange(require_update);
+folder_partition.addColor(colors, 'partition_points').onChange(require_update);
+gui.add(showing, "voronoi").onChange(require_update);
+let folder_voronoi = gui.addFolder("Voronoi Colors");
+folder_voronoi.addColor(colors, 'voronoi').onChange(require_update);
+folder_voronoi.addColor(colors, 'voronoi_points').onChange(require_update);
+gui.add(showing, "delaunay").onChange(require_update);
+let folder_delaunay = gui.addFolder("Delaunay Colors");
+folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
+
+
 // SCENE RENDERING
 function start()
 {
@@ -35,6 +66,8 @@ var VORONOI_ON = true;
 var ITERATIVE_ON = true;
 
 var requires_update = false;
+function require_update() { requires_update = true;}
+
 function update() 
 {
 	if(requires_update)
@@ -42,12 +75,12 @@ function update()
 		requires_update = false;
 		if(VORONOI_ON && points.length > 3)
         {
-            update_delaunay();
-            update_voronoi();
+            update_delaunay(showing.delaunay || showing.voronoi);
+            update_voronoi(showing.voronoi);
         }
         if(ITERATIVE_ON && points.length > 2)
         {
-            update_iteration();
+            update_iteration(showing.partition);
         }
 	}
 }
@@ -77,7 +110,7 @@ function onKeyDown(event)
 
 function onKeyUp(event)
 {
-    console.log(event.which);
+    // console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
         case 68: //d
@@ -276,12 +309,12 @@ function create_delaunay()
 
 function show_delaunay()
 {
-	showing_delaunay = true;
-	delaunay_renderer.create_geodesics(0x000099);
+	showing.delaunay = true;
+	delaunay_renderer.create_geodesics(colors.delaunay);
     scene.add(delaunay_renderer.geodesics);
 }
 
-function update_delaunay()
+function update_delaunay(on)
 {
 	if(delaunay_renderer)
 	{
@@ -289,13 +322,13 @@ function update_delaunay()
 		scene.remove(delaunay_renderer.edges);
 	}
 	
-	create_delaunay();
-	if(showing_delaunay) show_delaunay();
+	if(on) create_delaunay();
+	if(on && showing.delaunay) show_delaunay();
 }
 
 function hide_delaunay()
 {
-	showing_delaunay = false;
+	showing.delaunay = false;
     scene.remove(delaunay_renderer.geodesics);
 }
 
@@ -316,7 +349,7 @@ function create_voronoi()
 	voronoi_renderer = Renderer_Sphere(voronoi_map);
 }
 
-function update_voronoi()
+function update_voronoi(on)
 {
 	if(voronoi_renderer)
 	{
@@ -324,15 +357,15 @@ function update_voronoi()
 		scene.remove(voronoi_renderer.points);
 	}
 
-	create_voronoi();
-	if(showing_voronoi) show_voronoi();
+	if(on) create_voronoi();
+	if(on && showing.voronoi) show_voronoi();
 }
 
 function show_voronoi()
 {
 	showing_voronoi = true;
-	voronoi_renderer.create_geodesics(0x007700);
-	voronoi_renderer.create_points(0x009911);
+	voronoi_renderer.create_geodesics(colors.voronoi);
+	voronoi_renderer.create_points(colors.voronoi_points);
     scene.add(voronoi_renderer.points);
     scene.add(voronoi_renderer.geodesics);
 }
@@ -357,7 +390,7 @@ function create_iteration()
 	iteration_renderer = Renderer_Sphere(iteration_map);
 }
 
-function update_iteration()
+function update_iteration(on)
 {
 	if(iteration_renderer)
 	{
@@ -365,15 +398,15 @@ function update_iteration()
 		scene.remove(iteration_renderer.geodesics);
 	}
 
-	create_iteration();
-	if(showing_iteration) show_iteration();
+	if(on) create_iteration();
+	if(on && showing.partition) show_iteration();
 }
 
 function show_iteration()
 {
-	showing_iteration = true;
-	iteration_renderer.create_points();
-	iteration_renderer.create_geodesics(0x00BBBB);
+	showing.iteration = true;
+	iteration_renderer.create_points(colors.partition_points);
+	iteration_renderer.create_geodesics(colors.partition);
 	scene.add(iteration_renderer.points);
 	scene.add(iteration_renderer.geodesics);
 }
