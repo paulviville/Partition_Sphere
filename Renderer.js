@@ -4,7 +4,7 @@ const Renderer_base = {
     edges: undefined,
     points: undefined,
 
-    create_points: function()
+    create_points: function(color = 0xFF0000)
         {
             if(this.cmap.vertex == undefined)
                 return false;
@@ -16,16 +16,16 @@ const Renderer_base = {
             let geometry = new THREE.Geometry();
             this.cmap.foreach[this.cmap.vertex](vd => {
                 geometry.vertices.push(position[this.cmap.cell[this.cmap.vertex](vd)])});
-            let material = new THREE.PointsMaterial({color: 0xff0000, size: 0.025});
+            let material = new THREE.PointsMaterial({color: color, size: 0.025});
 			this.points = new THREE.Points(geometry, material); 
             return true;
         },
 
-    create_edges: function()
+    create_edges: function(color = 0x000000)
         {
             let map = this.cmap;
             let position = map.get_attribute[map.vertex]("position");
-            let material = new THREE.LineBasicMaterial({color:0x000000});
+            let material = new THREE.LineBasicMaterial({color:color});
             let geometry = new THREE.Geometry();
             map.foreach[map.edge](
                 ed => {
@@ -36,11 +36,11 @@ const Renderer_base = {
             this.edges = new THREE.LineSegments(geometry, material);
         },
 
-    create_faces: function()
+    create_faces: function(color = 0xFFFFFF)
         {
             let map = this.cmap;
             let position = map.get_attribute[map.vertex]("position");
-            let material = new THREE.MeshBasicMaterial({color:0xFFFFFF});
+            let material = new THREE.MeshBasicMaterial({color:color});
             let geometry = new THREE.Geometry();
             geometry.vertices = position;
             map.foreach[map.face](

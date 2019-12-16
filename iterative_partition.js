@@ -96,7 +96,6 @@ function iterate(map, points)
 
 				if(face_found)
 				{
-					console.log("face found")
 					let P1 = face_point[map.cell[FACE](fd)];
 					let dia0 = new THREE.Vector3();
 					dia0.subVectors(pos[map.cell[VERTEX](fd)], pos[map.cell[VERTEX](map.phi1(map.phi1(fd)))]);
@@ -119,7 +118,6 @@ function iterate(map, points)
 						cut0 = map.phi1(fd);
 						cut1 = map.phi_1(fd);
 					}
-					console.log(map._embeddings[FACE]);
 
 					let new_edge = map.cut_face(cut0, cut1);
 					let new_vert = map.cut_edge(new_edge);
@@ -154,7 +152,6 @@ function iterate(map, points)
 		relax_vertices(map);
 	}
 
-	// map.set_embeddings[map.edge]();
 }
 
 function relax_vertices(map, cache)
@@ -163,17 +160,14 @@ function relax_vertices(map, cache)
 	let FACE = map.face;
 	let face_point = map.get_attribute[FACE]("face_point");
 	let pos = map.get_attribute[VERTEX]("position");
-	console.log(map._embeddings);
 	map.foreach[VERTEX](
 		vd => {
-			console.log(vd);
 			let new_pos = new THREE.Vector3();
 			let points = [];
 			map.foreach_dart_of[VERTEX](vd, 
 				d => {
 					points.push(face_point[map.cell[FACE](d)]);
 				});
-			// new_pos.normalize();
 
 			switch(points.length)
 			{

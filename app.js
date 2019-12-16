@@ -27,37 +27,28 @@ window.addEventListener( 'keyup', onKeyUp, false );
 function start()
 {
 	init_scene();
-	// test_set0();
     rendering_loop();
 }
 
-var MODE_VORONOI = 0;
-var MODE_ITERATIVE = 1;
-var mode = MODE_ITERATIVE;
+
+var VORONOI_ON = true;
+var ITERATIVE_ON = true;
+
 var requires_update = false;
 function update() 
 {
 	if(requires_update)
 	{
 		requires_update = false;
-		switch(mode)
-		{
-			case MODE_VORONOI:
-				if(points.length > 3)
-				{
-					update_delaunay();
-					update_voronoi();
-				}
-				break;
-			case MODE_ITERATIVE:
-				if(points.length > 2)
-				{
-					update_iteration();
-				}
-				break;
-			default:
-
-		}
+		if(VORONOI_ON && points.length > 3)
+        {
+            update_delaunay();
+            update_voronoi();
+        }
+        if(ITERATIVE_ON && points.length > 2)
+        {
+            update_iteration();
+        }
 	}
 }
 
@@ -89,6 +80,18 @@ function onKeyUp(event)
     console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
+        case 68: //d
+            showing_delaunay = !showing_delaunay;
+            requires_update = true;
+            break;
+        case 86: //v
+            showing_voronoi = !showing_voronoi;
+            requires_update = true;
+            break;
+        case 73: //i
+            showing_iteration = !showing_iteration;
+            requires_update = true;
+            break;
 
         default:
             break;
@@ -274,7 +277,7 @@ function create_delaunay()
 function show_delaunay()
 {
 	showing_delaunay = true;
-	delaunay_renderer.create_geodesics(0xFF00FF);
+	delaunay_renderer.create_geodesics(0x000099);
     scene.add(delaunay_renderer.geodesics);
 }
 
@@ -328,8 +331,8 @@ function update_voronoi()
 function show_voronoi()
 {
 	showing_voronoi = true;
-	voronoi_renderer.create_geodesics(0xFFFF00);
-	voronoi_renderer.create_points();
+	voronoi_renderer.create_geodesics(0x007700);
+	voronoi_renderer.create_points(0x009911);
     scene.add(voronoi_renderer.points);
     scene.add(voronoi_renderer.geodesics);
 }
@@ -370,16 +373,10 @@ function show_iteration()
 {
 	showing_iteration = true;
 	iteration_renderer.create_points();
-	iteration_renderer.create_geodesics(0x00FFF0);
+	iteration_renderer.create_geodesics(0x00BBBB);
 	scene.add(iteration_renderer.points);
 	scene.add(iteration_renderer.geodesics);
 }
-
-
-
-
-
-
 
 
 // TEST SETS
@@ -391,4 +388,5 @@ function test_set0()
 	create_branch(new THREE.Vector3(0.25380677790900835, 0.8896366161154757, -0.3796430043528435));
 	create_branch(new THREE.Vector3(0.27366915301936295, -0.678333516859912, -0.6818862328791571));
 	create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
+    requires_update = true;
 }

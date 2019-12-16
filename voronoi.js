@@ -45,7 +45,6 @@ function voronoi(del_map)
             voronoi_faces.push(face);
         }
 	);
-	console.log(del_map, del_ctrs);
 	
     del_map.remove_attribute[FACE](del_ctrs);
 
