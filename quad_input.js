@@ -1,17 +1,22 @@
 function create_frames(points)
 {
+	let frames = [];
+	points.forEach(p => {
+		frames.push(create_frame(p));
+	})
+	return frames;
+}
+
+function create_frame(point)
+{
 	let rand_dir = new THREE.Vector3(Math.random(), Math.random(), Math.random());
 	rand_dir.normalize();
 
-	let frames = [];
-	points.forEach(p => {
-		let x = new THREE.Vector3();
-		x.crossVectors(p, rand_dir);
+	let x = new THREE.Vector3();
+		x.crossVectors(point, rand_dir).normalize();
 		let y = new THREE.Vector3();
-		y.crossVectors(p, x);
-		frames.push([x, y]);
-	})
-	return frames;
+		y.crossVectors(point, x).normalize();
+		return [x, y];
 }
 
 function create_quads(points, frames)

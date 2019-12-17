@@ -68,6 +68,7 @@ var test_sets = {
         points = [];
         while(branch_lines.children.length) branch_lines.remove(branch_lines.children[0]);
         while(branch_points.children.length) branch_points.remove(branch_points.children[0]);
+        quad_input_frames = null;
     }
 }
 
@@ -178,8 +179,10 @@ function onMouseMove(event)
         quat.setFromUnitVectors(previous_pos, current_pos);
         previous_pos.copy(intersection[0].point).normalize();
         
-        selected.position.applyQuaternion(quat);
-        selected.userData.branch_line.geometry.verticesNeedUpdate = true;
+        selected_point.position.applyQuaternion(quat);
+        selected_point.userData.branch_line.geometry.verticesNeedUpdate = true;
+
+        update_frame(selected_point.userData.id);
 	}
 	requires_update = true;
 }
@@ -212,7 +215,8 @@ function onMouseDown(event)
             }
             else
             {
-                selected = intersections[0].object;
+                selected_point = intersections[0].object;
+                console.log("point : " + selected_point.userData.id);
                 previous_pos.copy(intersections[0].point).normalize();
                 window.addEventListener('mousemove', onMouseMove, false)
                 window.addEventListener('mouseup', onMouseUp, false);       
@@ -276,6 +280,7 @@ function create_branch(position)
     branch_lines.add(branch_line);
 
     point_mesh.userData.branch_line = branch_line;
+    point_mesh.userData.id = points.length;
     points.push(point_mesh.position);
 }
 
@@ -317,6 +322,11 @@ function Renderer_Sphere(map)
         );
     };
 
+    renderer.create_curved_faces = function(color)
+    {
+        if(color = undefined) 
+            color = 0xFFFFFF; // TODO random color
+    }
     return renderer;
 }
 
@@ -440,20 +450,39 @@ function show_iteration()
 }
 
 // // ITERATIVE PARTITION
+var quad_input_frames;
 var quad_input_map;
 var quad_input_del_map;
 var quad_input_renderer;
 var quad_input_del_renderer;
 
+function rotate_frame(i, angle)
+{
+    if(!quad_input_frames) return;
+
+    quad_input_frames[i][0].applyAxisAngle(points[i], angle);
+    quad_input_frames[i][1].applyAxisAngle(points[i], angle);
+    require_update();
+}
+
+function create_quad_input_frames()
+{
+    quad_input_frames = create_frames(points);
+}
+
+function update_frame(i)
+{
+    if(quad_input_frames)
+        quad_input_frames[i] = create_frame(points[i]);
+}
+
 function create_quad_input()
 {
-    let frames = create_frames(points);
-    let quad_points = create_quads(points, frames);
-    console.log(quad_points);
+    if(!quad_input_frames) create_quad_input_frames();
+
+    let quad_points = create_quads(points, quad_input_frames);
     quad_input_del_map = delaunay(quad_points);
-    console.log(quad_input_del_map);
-    // quad_input_map = voronoi(quad_input_del_map);
-    console.log(quad_input_map);
+    quad_input_map = voronoi(quad_input_del_map);
 	quad_input_renderer = Renderer_Sphere(quad_input_map);
 	quad_input_del_renderer = Renderer_Sphere(quad_input_del_map);
 }
@@ -462,8 +491,8 @@ function update_quad_input(on)
 {
 	if(quad_input_renderer)
 	{
-		scene.remove(quad_input_del_renderer.points);
-		scene.remove(quad_input_del_renderer.geodesics);
+		scene.remove(quad_input_renderer.points);
+		scene.remove(quad_input_renderer.geodesics);
 	}
 
 	if(on) create_quad_input();
@@ -472,11 +501,16 @@ function update_quad_input(on)
 
 function show_quad_input()
 {
-	showing.iteration = true;
-	quad_input_del_renderer.create_points(colors.partition_points);
-	quad_input_del_renderer.create_geodesics(colors.partition);
-	scene.add(quad_input_del_renderer.points);
-	scene.add(quad_input_del_renderer.geodesics);
+    showing.iteration = true;
+    quad_input_renderer.create_points(colors.partition_points);
+	quad_input_renderer.create_geodesics(colors.partition);
+	scene.add(quad_input_renderer.points);
+	scene.add(quad_input_renderer.geodesics);
+
+	// quad_input_del_renderer.create_points(colors.partition_points);
+	// quad_input_del_renderer.create_geodesics(colors.partition);
+	// scene.add(quad_input_del_renderer.points);
+	// scene.add(quad_input_del_renderer.geodesics);
 }
 
 
