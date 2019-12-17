@@ -492,6 +492,7 @@ function update_quad_input(on)
 	if(quad_input_renderer)
 	{
 		scene.remove(quad_input_renderer.points);
+		scene.remove(quad_input_del_renderer.points);
 		scene.remove(quad_input_renderer.geodesics);
 	}
 
@@ -503,8 +504,10 @@ function show_quad_input()
 {
     showing.iteration = true;
     quad_input_renderer.create_points(colors.partition_points);
+    quad_input_del_renderer.create_points(colors.partition_points);
 	quad_input_renderer.create_geodesics(colors.partition);
 	scene.add(quad_input_renderer.points);
+	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
 
 	// quad_input_del_renderer.create_points(colors.partition_points);
