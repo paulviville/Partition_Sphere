@@ -1,11 +1,60 @@
 function iterative_partition(points)
 {
 	let map = CMap2();
-	create_core(map, points[0], points[1], points[2]);
+	let sorted = sort_points(points);
+
+	create_core(map, sorted[0], sorted[1], sorted[2]);
 	if(points.length > 3) 
-		iterate(map, points);
+		iterate(map, sorted);
 
 	return map;
+}
+
+function sort_points(points)
+{
+	let triangle_sets = [];
+	for(let i = 0; i < points.length - 2; ++i){
+		for(let j = i + 1; j < points.length - 1; ++j){
+			for(let k = j + 1; k < points.length; ++k){
+				triangle_sets.push([i, j, k]);
+			}
+		}	
+	}
+	
+	triangle_sets.forEach(
+		tri => {
+			tri.push(triangle_area(points[tri[0]], points[tri[1]], points[tri[2]]))
+		});
+	triangle_sets.sort(function (a, b) {
+		if (a[3] > b[3]) {
+			return -1;
+		}
+		if (b[3] > a[3]) {
+			return 1;
+		}
+		return 0;
+	});
+
+	let largest_triangle = triangle_sets[0];
+	let sorted_set = [];
+	sorted_set.push(points[largest_triangle[0]], points[largest_triangle[1]], points[largest_triangle[2]]);
+	for(let i = 0; i < points.length; ++i)
+	{
+		if(i != largest_triangle[0] && i != largest_triangle[1] && i != largest_triangle[2])
+			sorted_set.push(points[i]);
+	}
+
+	return sorted_set;
+}
+
+function triangle_area(A, B, C)
+{
+	let a = A.distanceTo(B);
+	let b = B.distanceTo(C);
+	let c = C.distanceTo(A);
+	let p = (a + b + c) / 2;
+	let area = Math.sqrt(p * (p - a) * (p - b) * (p - c));
+	return area;
 }
 
 function create_core(map, A, B, C)

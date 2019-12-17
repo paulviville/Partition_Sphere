@@ -29,16 +29,20 @@ var colors = {
     voronoi: 0x007700,
     voronoi_points: 0xFF88FF,
     delaunay: 0x000099,
-    test: false
+    quad_input: 0x70FF70,
+    quad_input_seeds: 0xFF00FF,
+    quad_input_points: 0xFF0000
 };
 
 var showing = {
     partition: true,
     voronoi: false,
     delaunay: false,
+    quad_input: false,
 }
 
 var test_sets = {
+    // example of test set
     test0: function() {
         this.reset();
         create_branch(new THREE.Vector3(0.6022189360479403, 0.7368469495958743, 0.3072278078829223));
@@ -69,18 +73,24 @@ var test_sets = {
 
 // GUI 
 let gui = new dat.GUI({autoPlace: true});
-let gui_params = {iterations: 50};
+
 gui.add(showing, "partition").onChange(require_update);
 let folder_partition = gui.addFolder("Partition Colors");
 folder_partition.addColor(colors, 'partition').onChange(require_update);
 folder_partition.addColor(colors, 'partition_points').onChange(require_update);
 gui.add(showing, "voronoi").onChange(require_update);
+
 let folder_voronoi = gui.addFolder("Voronoi Colors");
 folder_voronoi.addColor(colors, 'voronoi').onChange(require_update);
 folder_voronoi.addColor(colors, 'voronoi_points').onChange(require_update);
 gui.add(showing, "delaunay").onChange(require_update);
+
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
+
+let folder_quad = gui.addFolder("Quad Input");
+
+
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
 folder_test.add(test_sets, "nb_branches").onChange(require_update);
@@ -142,19 +152,6 @@ function onKeyUp(event)
     // console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
-        case 68: //d
-            showing_delaunay = !showing_delaunay;
-            requires_update = true;
-            break;
-        case 86: //v
-            showing_voronoi = !showing_voronoi;
-            requires_update = true;
-            break;
-        case 73: //i
-            showing_iteration = !showing_iteration;
-            requires_update = true;
-            break;
-
         default:
             break;
     }
