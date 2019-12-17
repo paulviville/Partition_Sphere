@@ -88,8 +88,8 @@ gui.add(showing, "delaunay").onChange(require_update);
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
 
+gui.add(showing, "quad_input").onChange(require_update);
 let folder_quad = gui.addFolder("Quad Input");
-
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
@@ -121,6 +121,8 @@ function update()
         update_voronoi(showing.voronoi && points.length > 3);
 
         update_iteration(showing.partition && points.length > 2);
+
+        update_quad_input(showing.quad_input && points.length > 2);
 	}
 }
 
@@ -435,6 +437,46 @@ function show_iteration()
 	iteration_renderer.create_geodesics(colors.partition);
 	scene.add(iteration_renderer.points);
 	scene.add(iteration_renderer.geodesics);
+}
+
+// // ITERATIVE PARTITION
+var quad_input_map;
+var quad_input_del_map;
+var quad_input_renderer;
+var quad_input_del_renderer;
+
+function create_quad_input()
+{
+    let frames = create_frames(points);
+    let quad_points = create_quads(points, frames);
+    console.log(quad_points);
+    quad_input_del_map = delaunay(quad_points);
+    console.log(quad_input_del_map);
+    // quad_input_map = voronoi(quad_input_del_map);
+    console.log(quad_input_map);
+	quad_input_renderer = Renderer_Sphere(quad_input_map);
+	quad_input_del_renderer = Renderer_Sphere(quad_input_del_map);
+}
+
+function update_quad_input(on)
+{
+	if(quad_input_renderer)
+	{
+		scene.remove(quad_input_del_renderer.points);
+		scene.remove(quad_input_del_renderer.geodesics);
+	}
+
+	if(on) create_quad_input();
+	if(on && showing.quad_input) show_quad_input();
+}
+
+function show_quad_input()
+{
+	showing.iteration = true;
+	quad_input_del_renderer.create_points(colors.partition_points);
+	quad_input_del_renderer.create_geodesics(colors.partition);
+	scene.add(quad_input_del_renderer.points);
+	scene.add(quad_input_del_renderer.geodesics);
 }
 
 
