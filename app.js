@@ -72,6 +72,7 @@ var test_sets = {
         while(branch_lines.children.length) branch_lines.remove(branch_lines.children[0]);
         while(branch_points.children.length) branch_points.remove(branch_points.children[0]);
         quad_input_frames = null;
+        selector.material.visible = false;
     }
 }
 
@@ -540,7 +541,6 @@ function update_frame(i)
 function create_quad_input()
 {
     if(!quad_input_frames) create_quad_input_frames();
-    console.log(quad_input_frame_rotations, quad_input_frames);
     let rotated_frames = [];
     for(let i = 0; i < quad_input_frames.length; ++i)
     {
