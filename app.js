@@ -23,6 +23,9 @@ window.addEventListener( 'mousedown', onMouseDown, false );
 window.addEventListener( 'keydown', onKeyDown, false );
 window.addEventListener( 'keyup', onKeyUp, false );
 
+
+
+
 var colors = {
     partition: 0x00c0c0,
     partition_points: 0xee5500,
@@ -72,6 +75,11 @@ var test_sets = {
     }
 }
 
+var quad_rotation = {
+    rotation: 0,
+    
+    gizmo: undefined
+}
 // GUI 
 let gui = new dat.GUI({autoPlace: true});
 
@@ -91,6 +99,9 @@ folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
 
 gui.add(showing, "quad_input").onChange(require_update);
 let folder_quad = gui.addFolder("Quad Input");
+folder_quad.addColor(colors, 'quad_input').onChange(require_update);
+folder_quad.addColor(colors, 'quad_input_seeds').onChange(require_update);
+folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
@@ -98,16 +109,36 @@ folder_test.add(test_sets, "nb_branches").onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
+function gui_add_rotation()
+{
+    if(quad_rotation.gizmo)
+        gui.remove(quad_rotation.gizmo)
+
+    quad_rotation.gizmo = gui.add(quad_rotation, 'rotation', -1.5, 1.5);
+    
+    quad_rotation.gizmo.onChange(gui_handle_rotation);
+}
+
+function gui_handle_rotation()
+{
+    if(selected_point)
+        quad_input_frame_rotations[selected_point.userData.id] = quad_rotation.rotation;
+    require_update();
+}
+
+function gui_remove_rotation()
+{
+    if(quad_rotation.gizmo)
+        gui.remove(quad_rotation.gizmo);
+    quad_rotation.gizmo = null;
+}
+
 // SCENE RENDERING
 function start()
 {
 	init_scene();
     rendering_loop();
 }
-
-
-var VORONOI_ON = true;
-var ITERATIVE_ON = true;
 
 var requires_update = false;
 function require_update() { requires_update = true;}
@@ -181,6 +212,7 @@ function onMouseMove(event)
         
         selected_point.position.applyQuaternion(quat);
         selected_point.userData.branch_line.geometry.verticesNeedUpdate = true;
+        selector.position.copy(selected_point.position);
 
         update_frame(selected_point.userData.id);
 	}
@@ -212,15 +244,31 @@ function onMouseDown(event)
                     create_branch(intersections[0].point);
 					requires_update = true;
                 }
+                selected_point = null;
+                selector.material.visible = false;
+                gui_remove_rotation();
             }
             else
             {
                 selected_point = intersections[0].object;
-                console.log("point : " + selected_point.userData.id);
+                selector.material.visible = true;
+                selector.position.copy(intersections[0].object.position);
                 previous_pos.copy(intersections[0].point).normalize();
                 window.addEventListener('mousemove', onMouseMove, false)
-                window.addEventListener('mouseup', onMouseUp, false);       
+                window.addEventListener('mouseup', onMouseUp, false);
+
+                if(showing.quad_input)
+                {
+                    gui_add_rotation();
+                    quad_rotation.rotation = quad_input_frame_rotations[selected_point.userData.id];
+                }
             }
+        }
+        else
+        {
+            selected_point = null;
+            selector.material.visible = false;
+            gui_remove_rotation();
         }
     }
 }
@@ -239,7 +287,7 @@ var branch_points;
 var branch_line_material = new THREE.LineBasicMaterial({linewidth: 2, color: 0x000000});
 var branch_point_material = new THREE.MeshLambertMaterial({color: 0xDD0000});
 var branch_point_geometry = new THREE.SphereGeometry( 0.025, 16, 16 );
-
+var selector;
 function init_scene()
 {
     let ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
@@ -263,6 +311,10 @@ function init_scene()
     branch_points = new THREE.Group();
     scene.add(branch_lines);
     scene.add(branch_points);
+
+    selector = new THREE.Mesh(new THREE.SphereGeometry( 0.026, 16, 16 ), new THREE.MeshLambertMaterial({color: 0x22FFFF}));
+    selector.material.visible = false;
+    scene.add(selector);
 }
 
 function create_branch(position)
@@ -282,6 +334,8 @@ function create_branch(position)
     point_mesh.userData.branch_line = branch_line;
     point_mesh.userData.id = points.length;
     points.push(point_mesh.position);
+
+    update_frame(point_mesh.userData.id);
 }
 
 function get_geodesic(A, B, inside = false)
@@ -449,38 +503,54 @@ function show_iteration()
 	scene.add(iteration_renderer.geodesics);
 }
 
-// // ITERATIVE PARTITION
+// // QUAD INPUT
 var quad_input_frames;
+var quad_input_frame_rotations;
 var quad_input_map;
 var quad_input_del_map;
 var quad_input_renderer;
 var quad_input_del_renderer;
 
-function rotate_frame(i, angle)
-{
-    if(!quad_input_frames) return;
+// function rotate_frame(i, angle)
+// {
+//     if(!quad_input_frames) return;
 
-    quad_input_frames[i][0].applyAxisAngle(points[i], angle);
-    quad_input_frames[i][1].applyAxisAngle(points[i], angle);
-    require_update();
-}
+//     quad_input_frames[i][0].applyAxisAngle(points[i], angle);
+//     quad_input_frames[i][1].applyAxisAngle(points[i], angle);
+//     require_update();
+// }
 
 function create_quad_input_frames()
 {
     quad_input_frames = create_frames(points);
+    quad_input_frame_rotations = new Array(quad_input_frames.length);
+    for(let i = 0; i < quad_input_frames.length; ++i)
+        quad_input_frame_rotations[i] = 0;
 }
 
 function update_frame(i)
 {
     if(quad_input_frames)
+    {
         quad_input_frames[i] = create_frame(points[i]);
+        quad_input_frame_rotations[i] = 0;
+    }
 }
 
 function create_quad_input()
 {
     if(!quad_input_frames) create_quad_input_frames();
+    console.log(quad_input_frame_rotations, quad_input_frames);
+    let rotated_frames = [];
+    for(let i = 0; i < quad_input_frames.length; ++i)
+    {
+        let frame = [quad_input_frames[i][0].clone(), quad_input_frames[i][1].clone()];
+        frame[0].applyAxisAngle(points[i], quad_input_frame_rotations[i]);
+        frame[1].applyAxisAngle(points[i], quad_input_frame_rotations[i]);
+        rotated_frames.push(frame);
+    }
 
-    let quad_points = create_quads(points, quad_input_frames);
+    let quad_points = create_quads(points, rotated_frames);
     quad_input_del_map = delaunay(quad_points);
     quad_input_map = voronoi(quad_input_del_map);
 	quad_input_renderer = Renderer_Sphere(quad_input_map);
@@ -503,9 +573,9 @@ function update_quad_input(on)
 function show_quad_input()
 {
     showing.iteration = true;
-    quad_input_renderer.create_points(colors.partition_points);
-    quad_input_del_renderer.create_points(colors.partition_points);
-	quad_input_renderer.create_geodesics(colors.partition);
+    quad_input_renderer.create_points(colors.quad_input);
+    quad_input_del_renderer.create_points(colors.quad_input_seeds);
+	quad_input_renderer.create_geodesics(colors.quad_input_points);
 	scene.add(quad_input_renderer.points);
 	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
