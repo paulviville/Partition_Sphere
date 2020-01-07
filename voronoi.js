@@ -10,7 +10,7 @@ function delaunay(points)
 	return m2;
 }
 
-function voronoi(del_map)
+function voronoi(del_map, set_ids)
 {
 	let VERTEX = del_map.vertex;
 	let FACE = del_map.face;
@@ -32,7 +32,8 @@ function voronoi(del_map)
         }
     );
 
-	let voronoi_faces = [];
+    let voronoi_faces = [];
+    let voronoi_seed_ids = [];
     del_map.foreach[VERTEX](
         vd => {
             let face = [];
@@ -41,13 +42,20 @@ function voronoi(del_map)
                     face.unshift(del_ctrs[del_map.cell[FACE](fd)]);
                 }
             );
-
+            if(set_ids)
+                voronoi_seed_ids.push(del_map.cell[VERTEX](vd));
             voronoi_faces.push(face);
         }
 	);
 	
     del_map.remove_attribute[FACE](del_ctrs);
 
-	let voronoi_map = cmap2_from_geometry({v:circumcenters, f:voronoi_faces});
+    let voronoi_map;
+    voronoi_map = cmap2_from_geometry({v:circumcenters, f:voronoi_faces});
+    if(set_ids){
+        voronoi_map.set_embeddings[FACE]();
+        let seed_id = voronoi_map.add_attribute[FACE]("seed_id");
+        voronoi_map.foreach[FACE](fd => seed_id[voronoi_map.cell[FACE](fd)] = voronoi_seed_ids.shift());
+    }
 	return voronoi_map;
 }

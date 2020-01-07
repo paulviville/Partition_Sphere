@@ -352,38 +352,7 @@ function get_geodesic(A, B, inside = false)
 
 
 
-// MAP RENDERER OVERLOAD
-function Renderer_Sphere(map)
-{
-    let renderer = Renderer(map);
-    renderer.create_geodesics = function(color = 0x000000)
-    {
-        if(this.geodesics) return;
 
-        let map = this.cmap;
-        let position = map.get_attribute[map.vertex]("position");
-        let material = new THREE.LineBasicMaterial({color:color});
-        this.geodesics = new THREE.Group();
-
-        map.foreach[map.edge](
-            ed => {
-                let line = new THREE.Line(new THREE.Geometry(), material);
-                line.geometry.vertices = new_geodesic(
-                    position[map.cell[map.vertex](ed)], 
-                    position[map.cell[map.vertex](map.phi1(ed))],
-                    100);
-                this.geodesics.add(line);
-            }
-        );
-    };
-
-    renderer.create_curved_faces = function(color)
-    {
-        if(color = undefined) 
-            color = 0xFFFFFF; // TODO random color
-    }
-    return renderer;
-}
 
 // VORONOI DIAGRAM
 var delaunay_map;
@@ -396,7 +365,7 @@ var showing_voronoi = true;
 function create_delaunay()
 {
     delaunay_map = delaunay(points);
-	delaunay_renderer = Renderer_Sphere(delaunay_map);
+	delaunay_renderer = Renderer_Spherical(delaunay_map);
 
 }
 
@@ -439,7 +408,7 @@ function hide_convexhull()
 function create_voronoi()
 {
     voronoi_map = voronoi(delaunay_map);
-	voronoi_renderer = Renderer_Sphere(voronoi_map);
+	voronoi_renderer = Renderer_Spherical(voronoi_map);
 }
 
 function update_voronoi(on)
@@ -480,7 +449,7 @@ var showing_iteration = true;
 function create_iteration()
 {
 	iteration_map = iterative_partition(points);
-	iteration_renderer = Renderer_Sphere(iteration_map);
+	iteration_renderer = Renderer_Spherical(iteration_map);
 }
 
 function update_iteration(on)
@@ -552,9 +521,9 @@ function create_quad_input()
 
     let quad_points = create_quads(points, rotated_frames);
     quad_input_del_map = delaunay(quad_points);
-    quad_input_map = voronoi(quad_input_del_map);
-	quad_input_renderer = Renderer_Sphere(quad_input_map);
-	quad_input_del_renderer = Renderer_Sphere(quad_input_del_map);
+    quad_input_map = voronoi(quad_input_del_map, true);
+	quad_input_renderer = Renderer_Spherical(quad_input_map);
+	quad_input_del_renderer = Renderer_Spherical(quad_input_del_map);
 }
 
 function update_quad_input(on)
@@ -579,23 +548,4 @@ function show_quad_input()
 	scene.add(quad_input_renderer.points);
 	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
-
-	// quad_input_del_renderer.create_points(colors.partition_points);
-	// quad_input_del_renderer.create_geodesics(colors.partition);
-	// scene.add(quad_input_del_renderer.points);
-	// scene.add(quad_input_del_renderer.geodesics);
 }
-
-
-// TEST SETS
-function test_set0()
-{
-	create_branch(new THREE.Vector3(0.6022189360479403, 0.7368469495958743, 0.3072278078829223));
-	create_branch(new THREE.Vector3(-0.13518906815654932, -0.5233125218963196, 0.8413488695407381));
-	create_branch(new THREE.Vector3(0.6333494652638829, 0.19158420104961565, 0.7497759323678848));
-	create_branch(new THREE.Vector3(0.25380677790900835, 0.8896366161154757, -0.3796430043528435));
-	create_branch(new THREE.Vector3(0.27366915301936295, -0.678333516859912, -0.6818862328791571));
-	create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
-}
-
-
