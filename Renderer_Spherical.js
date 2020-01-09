@@ -26,17 +26,12 @@ function Renderer_Spherical(map)
 
     renderer.create_curved_faces = function(color)
     {
-        // if(color = undefined) 
-        //     color = 0xFFFFFF * Math.random();
-        
         const map = this.cmap;
         const vertex = map.vertex;
         const face = map.face;
         const pos = map.get_attribute[vertex]("position");
 
         this.curved_faces = new THREE.Group();
-
-        // let geometry = new THREE.Geometry();
 
         map.foreach[face](
             fd => {
@@ -49,22 +44,39 @@ function Renderer_Spherical(map)
                     }
                 );
                 centroid.normalize();
-                // geometry.vertices.push(centroid);
 
-                let geometry = new THREE.Geometry();
-                geometry.vertices.push(centroid, ...vertices);
+                let material = new THREE.MeshLambertMaterial({color: 0xFFFFFF * Math.random()});
                 for(let i = 0; i < vertices.length; ++i)
                 {
-                    geometry.faces.push(new THREE.Face3(0, i+1, (i+1) % vertices.length +1 ))
+                    let divs = 10;
+                    let geometry = new THREE.Geometry();
+                    geometry.vertices.push(...subdivide_triangle(centroid, vertices[i], vertices[(i+1) % vertices.length], divs));
+                    let n = 1;
+                    let k = 0;
+                    while(n <= divs)
+                    {
+                        let k_max = n + k;
+                        let l = k_max;
+                        let start = k;
+                        while(k < k_max)
+                        {
+                            if(k == start)
+                                geometry.faces.push(new THREE.Face3(k++, l, ++l));
+                            else
+                            {
+                                geometry.faces.push(new THREE.Face3(k, k - 1, l));
+                                geometry.faces.push(new THREE.Face3(k++, l, ++l));
+                            }
+                        } 
+                        ++n;
+                    }
+
+                    let face_mesh = new THREE.Mesh(geometry, material);
+                    this.curved_faces.add(face_mesh);
                 }
-                let material = new THREE.MeshBasicMaterial({color: 0xFFFFFF * Math.random()});
-                let mesh = new THREE.Mesh(geometry, material);
-                this.curved_faces.add(mesh);
             }
         );
 
-        // let material = new THREE.PointsMaterial({color: 0xFFFFFF * Math.random(), size: 0.025});
-        // this.curved_faces = new THREE.Points(geometry, material);
         return true;
     }
     return renderer;

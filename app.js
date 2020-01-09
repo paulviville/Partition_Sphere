@@ -549,3 +549,25 @@ function show_quad_input()
 	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
 }
+
+function tbd()
+{
+    let fe = mark_vertices_seed(quad_input_map);
+    let map = quad_input_map;
+    console.log(fe);
+    let material = new THREE.LineBasicMaterial({color:0xFFFFFF});
+    let geodesics = new THREE.Group();
+    const pos = map.get_attribute[map.vertex]("position");
+    fe.forEach(frame => {
+        frame.forEach(d => {
+        let line = new THREE.Line(new THREE.Geometry(), material);
+            line.geometry.vertices = new_geodesic(
+                pos[map.cell[map.vertex](d)], 
+                pos[map.cell[map.vertex](map.phi2(d))],
+                100);
+            geodesics.add(line);
+        });
+    });
+
+    scene.add(geodesics)
+}

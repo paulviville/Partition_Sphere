@@ -37,6 +37,7 @@ function geodesic_length(A, B)
 
 function new_geodesic(A, B, nb_divs = 200, out = false)
 {
+	// console.log(A, B);
 	let geodesic = [];
 	let phi = A.angleTo(B);
 	if(out) phi -= 2*Math.PI;
@@ -54,6 +55,26 @@ function new_geodesic(A, B, nb_divs = 200, out = false)
 		geodesic.push(p);
 	}
 	return geodesic;
+}
+
+function subdivide_triangle(A, B, C, divs)
+{
+	if(divs < 2) 
+		return [A, B, C];
+
+	let vertices = [];
+	for(let i = 0; i <= divs; ++i)
+	{
+		let ab = slerp(A, B, i / divs);
+		let ac = slerp(A, C, i / divs);
+		if(i == 0)
+			vertices.push(ab);
+		else
+			for(let j = 0; j <= i; ++j)
+				vertices.push(slerp(ab, ac, j / i));
+	}
+
+	return vertices;
 }
 
 function in_sphere_triangle(P, U, V, W)
