@@ -26,13 +26,13 @@ function create_quads(points, frames)
 	for(let i = 0; i < points.length; ++i)
 	{
 	 	rand_dir = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-		quad_points.push(points[i].clone().addScaledVector(frames[i][0], 0.1).addScaledVector(rand_dir, 0.0005).normalize());
+		quad_points.push(points[i].clone().addScaledVector(frames[i][0], 0.05).addScaledVector(rand_dir, 0.0005).normalize());
 	 	rand_dir = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-		quad_points.push(points[i].clone().addScaledVector(frames[i][1], 0.1).addScaledVector(rand_dir, 0.0005).normalize());
+		quad_points.push(points[i].clone().addScaledVector(frames[i][1], 0.05).addScaledVector(rand_dir, 0.0005).normalize());
 		rand_dir = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-		quad_points.push(points[i].clone().addScaledVector(frames[i][0], -0.1).addScaledVector(rand_dir, 0.0005).normalize());
+		quad_points.push(points[i].clone().addScaledVector(frames[i][0], -0.05).addScaledVector(rand_dir, 0.0005).normalize());
 		rand_dir = new THREE.Vector3(Math.random(), Math.random(), Math.random());
-		quad_points.push(points[i].clone().addScaledVector(frames[i][1], -0.1).addScaledVector(rand_dir, 0.0005).normalize());
+		quad_points.push(points[i].clone().addScaledVector(frames[i][1], -0.05).addScaledVector(rand_dir, 0.0005).normalize());
 	}
 
 	return quad_points;

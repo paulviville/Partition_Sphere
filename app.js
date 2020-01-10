@@ -194,6 +194,14 @@ let keys = new Array(256);
 function onKeyDown(event)
 {
     keys[event.which] = true;
+    switch(event.which){
+        case 81: // q
+            if(quad_input_map)
+                rotate_frames(0.1);
+            break;
+        default:
+            break;
+    }
 }
 
 function onKeyUp(event)
@@ -583,6 +591,7 @@ function tbd()
     let map = quad_input_map;
     console.log(fe);
     let material = new THREE.LineBasicMaterial({color:0xFFFFFF});
+    let material1 = new THREE.LineBasicMaterial({color:0xFFFF00});
     let geodesics = new THREE.Group();
     const pos = map.get_attribute[map.vertex]("position");
     fe.forEach(frame => {
@@ -596,7 +605,77 @@ function tbd()
         });
     });
 
+    fe.forEach(frame => {
+        frame.forEach(d => {
+        let line = new THREE.Line(new THREE.Geometry(), material1);
+            line.geometry.vertices = new_geodesic(
+                pos[map.cell[map.vertex](map.phi1(d))], 
+                pos[map.cell[map.vertex](map.phi2(map.phi1(d)))],
+                100);
+            geodesics.add(line);
+            line = new THREE.Line(new THREE.Geometry(), material1);
+            line.geometry.vertices = new_geodesic(
+                pos[map.cell[map.vertex](map.phi1(d))], 
+                pos[map.cell[map.vertex](map.phi_1(map.phi2(d)))],
+                100);
+            geodesics.add(line);
+        });
+    });
+
+
     scene.add(geodesics)
+}
+
+function get_frame_rotations(map)
+{   
+    const vertex = map.vertex;
+    const pos = map.get_attribute[vertex]("position");
+
+    let rotations = [];
+    let frames = mark_vertices_seed(map);
+
+    for(let i = 0; i < frames.length; i++)
+    {
+        let frame_rotation = new Array(4);
+        for(let j = 0; j < 4; j++)
+        {
+            let r = geodesic_length(
+                    pos[map.cell[map.vertex](map.phi1(frames[i][j]))], 
+                    pos[map.cell[map.vertex](map.phi2(map.phi1(frames[i][j])))]
+                );
+            let r_ = geodesic_length(
+                pos[map.cell[map.vertex](map.phi1(frames[i][j]))], 
+                pos[map.cell[map.vertex](map.phi_1(map.phi2(frames[i][j])))]
+                );
+
+            frame_rotation[j] = r - r_;
+        }
+        rotations.push(frame_rotation);
+    }
+
+    return rotations;
+}
+
+function rotate_frames(dt)
+{
+    const map = quad_input_map;
+    let rotations = get_frame_rotations(map);
+    console.log(rotations);
+    for(let i = 0; i < rotations.length; ++i)
+    {
+        let avg_rot = rotations[i][0] + rotations[i][1] +
+            rotations[i][2] + rotations[i][3]; 
+        quad_input_frame_rotations[i] += avg_rot * dt
+    }
+    console.log(quad_input_frame_rotations);
+    update_quad_input(true);
+}
+
+function rotate_frames_iterations(n, dt)
+{
+    let i = 0
+    while(i++ < n)
+        rotate_frames(dt);
 }
 
 var hand_drawn_lines;
@@ -609,7 +688,7 @@ function init_drawing()
 
 function add_drawn_line(A, B)
 {
-    let material = new THREE.LineBasicMaterial({color: colors.drawing});
+    let material = new THREE.LineBasicMaterial({linewidth: 3, color: colors.drawing});
     let line = new THREE.Line(new THREE.Geometry(), material);
     line.geometry.vertices = new_geodesic(A, B, 100);
     last_drawn_line = line;
