@@ -34,7 +34,8 @@ var colors = {
     delaunay: 0x000099,
     quad_input: 0x70FF70,
     quad_input_seeds: 0xFF00FF,
-    quad_input_points: 0xFF0000
+    quad_input_points: 0xFF0000,
+    drawing: 0x000000
 };
 
 var showing = {
@@ -71,6 +72,7 @@ var test_sets = {
         points = [];
         while(branch_lines.children.length) branch_lines.remove(branch_lines.children[0]);
         while(branch_points.children.length) branch_points.remove(branch_points.children[0]);
+        reset_drawing();
         quad_input_frames = null;
         selector.material.visible = false;
     }
@@ -110,6 +112,8 @@ folder_test.add(test_sets, "nb_branches").onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
+gui.addColor(colors, "drawing");
+
 function gui_add_rotation()
 {
     if(quad_rotation.gizmo)
@@ -137,7 +141,8 @@ function gui_remove_rotation()
 // SCENE RENDERING
 function start()
 {
-	init_scene();
+    init_scene();
+    init_drawing();
     rendering_loop();
 }
 
@@ -175,7 +180,16 @@ function rendering_loop()
 start();
 
 
+
 // USER INPUT HANDLING
+let mouse = new THREE.Vector2();
+let previous_pos = new THREE.Vector3();
+let current_pos = new THREE.Vector3();
+let drawing0;
+let drawing1;
+let raycaster = new THREE.Raycaster();
+let selected_point;
+
 let keys = new Array(256);
 function onKeyDown(event)
 {
@@ -187,16 +201,15 @@ function onKeyUp(event)
     // console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
+        case 68: // d
+            drawing0 = null;
+            drawing1 = null;
+            break;
         default:
             break;
     }
 }
 
-let mouse = new THREE.Vector2();
-let previous_pos = new THREE.Vector3();
-let current_pos = new THREE.Vector3();
-let raycaster = new THREE.Raycaster();
-let selected_point;
 function onMouseMove(event)
 {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -248,6 +261,20 @@ function onMouseDown(event)
                 selected_point = null;
                 selector.material.visible = false;
                 gui_remove_rotation();
+
+                if(keys[68]) // d
+                {
+                    if(!drawing0)
+                        drawing0 = intersections[0].point.clone();
+                    else   
+                    {
+                        drawing1 = intersections[0].point.clone();
+                        drawing0.normalize();
+                        drawing1.normalize();
+                        add_drawn_line(drawing0, drawing1)
+                        drawing0 = drawing1;
+                    }
+                }
             }
             else
             {
@@ -549,7 +576,7 @@ function show_quad_input()
 	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
 }
-
+ 
 function tbd()
 {
     let fe = mark_vertices_seed(quad_input_map);
@@ -570,4 +597,34 @@ function tbd()
     });
 
     scene.add(geodesics)
+}
+
+var hand_drawn_lines;
+var last_drawn_line;
+function init_drawing()
+{
+    hand_drawn_lines = new THREE.Group();
+    scene.add(hand_drawn_lines);
+}
+
+function add_drawn_line(A, B)
+{
+    let material = new THREE.LineBasicMaterial({color: colors.drawing});
+    let line = new THREE.Line(new THREE.Geometry(), material);
+    line.geometry.vertices = new_geodesic(A, B, 100);
+    last_drawn_line = line;
+    hand_drawn_lines.add(line);
+}
+
+function reset_drawing()
+{
+    while(hand_drawn_lines.children.length)
+        hand_drawn_lines.remove(hand_drawn_lines.children[0]);
+}
+
+function delete_last_line()
+{
+    if(last_drawn_line)
+        hand_drawn_lines.remove(last_drawn_line);
+    last_drawn_line = null;       
 }

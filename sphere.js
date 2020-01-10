@@ -37,7 +37,6 @@ function geodesic_length(A, B)
 
 function new_geodesic(A, B, nb_divs = 200, out = false)
 {
-	// console.log(A, B);
 	let geodesic = [];
 	let phi = A.angleTo(B);
 	if(out) phi -= 2*Math.PI;
