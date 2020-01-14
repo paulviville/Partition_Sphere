@@ -35,7 +35,10 @@ var colors = {
     quad_input: 0x70FF70,
     quad_input_seeds: 0xFF00FF,
     quad_input_points: 0xFF0000,
-    drawing: 0x000000
+    drawing: 0x000000,
+    line_width: 1,
+    points: 0xFFFFFF,
+    point_size: 1
 };
 
 var showing = {
@@ -113,6 +116,9 @@ folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
 gui.addColor(colors, "drawing");
+gui.addColor(colors, "points");
+gui.add(colors, "line_width", 1, 10);
+gui.add(colors, "point_size", 1, 10);
 
 function gui_add_rotation()
 {
@@ -209,9 +215,15 @@ function onKeyUp(event)
     // console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
+        case 8: // backspace
+            delete_last_line();
+            break;
         case 68: // d
             drawing0 = null;
             drawing1 = null;
+            break;
+        case 82: //r
+            reset_drawing()
             break;
         default:
             break;
@@ -282,6 +294,11 @@ function onMouseDown(event)
                         add_drawn_line(drawing0, drawing1)
                         drawing0 = drawing1;
                     }
+                }
+
+                if(keys[80]) // p
+                {
+                    add_point(intersections[0].point);
                 }
             }
             else
@@ -639,12 +656,13 @@ function get_frame_rotations(map)
         let frame_rotation = new Array(4);
         for(let j = 0; j < 4; j++)
         {
+            let A = pos[map.cell[map.vertex](map.phi1(frames[i][j]))];
             let r = geodesic_length(
-                    pos[map.cell[map.vertex](map.phi1(frames[i][j]))], 
+                    A, 
                     pos[map.cell[map.vertex](map.phi2(map.phi1(frames[i][j])))]
                 );
             let r_ = geodesic_length(
-                pos[map.cell[map.vertex](map.phi1(frames[i][j]))], 
+                A, 
                 pos[map.cell[map.vertex](map.phi_1(map.phi2(frames[i][j])))]
                 );
 
@@ -683,16 +701,28 @@ var last_drawn_line;
 function init_drawing()
 {
     hand_drawn_lines = new THREE.Group();
+    last_drawn_line = [];
     scene.add(hand_drawn_lines);
 }
 
 function add_drawn_line(A, B)
 {
-    let material = new THREE.LineBasicMaterial({linewidth: 3, color: colors.drawing});
+    let material = new THREE.LineBasicMaterial({linewidth: colors.line_width, color: colors.drawing});
     let line = new THREE.Line(new THREE.Geometry(), material);
     line.geometry.vertices = new_geodesic(A, B, 100);
-    last_drawn_line = line;
+    last_drawn_line.push(line);
     hand_drawn_lines.add(line);
+}
+
+function add_point(A)
+{
+    let material = new THREE.PointsMaterial({color: colors.points, size: colors.point_size / 50});
+    let geometry = new THREE.Geometry();
+    geometry.vertices.push(A.clone());
+
+    let point = new THREE.Points(geometry, material);
+    last_drawn_line.push(point);
+    hand_drawn_lines.add(point)
 }
 
 function reset_drawing()
@@ -703,7 +733,6 @@ function reset_drawing()
 
 function delete_last_line()
 {
-    if(last_drawn_line)
-        hand_drawn_lines.remove(last_drawn_line);
-    last_drawn_line = null;       
+    if(last_drawn_line.length)
+        hand_drawn_lines.remove(last_drawn_line.pop());
 }
