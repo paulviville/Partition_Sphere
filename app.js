@@ -1008,10 +1008,10 @@ function show_info_voronoi_map()
                     let p1 = pos[map.cell[vertex](map.phi2(d))];
                     let dist = p0.angleTo(p1);
                     let n2 = face_degree[map.cell[face](map.phi2(d))];
-                    neighbors.push({d: map.phi2(d), l: dist, n: n2});
+                    neighbors.push({d: map.phi2(d), f: map.cell[face](map.phi2(d)), l: parseFloat(dist.toFixed(2)), n: n2});
                 });
 
-            console.log(fd, n, ...neighbors);
+            console.log("face:", fd, map.cell[face](fd), "degree:", n, ...neighbors);
         });
 
     
