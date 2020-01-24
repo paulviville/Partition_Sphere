@@ -42,8 +42,8 @@ var colors = {
 };
 
 var showing = {
-    partition: true,
-    voronoi: false,
+    partition: false,
+    voronoi: true,
     delaunay: false,
     quad_input: false,
 }
@@ -83,10 +83,10 @@ var test_sets = {
 
 var quad_rotation = {
     rotation: 0,
-    
+
     gizmo: undefined
 }
-// GUI 
+// GUI
 let gui = new dat.GUI({autoPlace: true});
 
 gui.add(showing, "partition").onChange(require_update);
@@ -117,7 +117,7 @@ gui.add(test_sets, "reset").onChange(require_update);
 
 gui.addColor(colors, "drawing");
 gui.addColor(colors, "points");
-gui.add(colors, "line_width", 1, 10);
+gui.add(colors, "line_width", 1, 20);
 gui.add(colors, "point_size", 1, 10);
 
 function gui_add_rotation()
@@ -126,7 +126,7 @@ function gui_add_rotation()
         gui.remove(quad_rotation.gizmo)
 
     quad_rotation.gizmo = gui.add(quad_rotation, 'rotation', -1.5, 1.5);
-    
+
     quad_rotation.gizmo.onChange(gui_handle_rotation);
 }
 
@@ -155,7 +155,7 @@ function start()
 var requires_update = false;
 function require_update() { requires_update = true;}
 
-function update() 
+function update()
 {
 	if(requires_update)
 	{
@@ -170,7 +170,7 @@ function update()
 	}
 }
 
-function render() 
+function render()
 {
     renderer.render(scene, camera);
 }
@@ -243,7 +243,7 @@ function onMouseMove(event)
         let quat = new THREE.Quaternion();
         quat.setFromUnitVectors(previous_pos, current_pos);
         previous_pos.copy(intersection[0].point).normalize();
-        
+
         selected_point.position.applyQuaternion(quat);
         selected_point.userData.branch_line.geometry.verticesNeedUpdate = true;
         selector.position.copy(selected_point.position);
@@ -259,7 +259,7 @@ function onMouseUp(event)
     window.removeEventListener( 'mouseup', onMouseUp, false );
 }
 
-function onMouseDown(event) 
+function onMouseDown(event)
 {
     if(event.buttons == 2)
     {
@@ -286,7 +286,7 @@ function onMouseDown(event)
                 {
                     if(!drawing0)
                         drawing0 = intersections[0].point.clone();
-                    else   
+                    else
                     {
                         drawing1 = intersections[0].point.clone();
                         drawing0.normalize();
@@ -343,6 +343,7 @@ var branch_point_geometry = new THREE.SphereGeometry( 0.025, 16, 16 );
 var selector;
 function init_scene()
 {
+
     let ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
     scene.add(ambientLight);
     let pointLight = new THREE.PointLight(0xFFEEDD, 0.3);
@@ -352,21 +353,26 @@ function init_scene()
     let sphere_mat = new THREE.MeshLambertMaterial({color: 0xEEEEEE, transparent: true, opacity: 0.90});
     let sphere_geom = new THREE.SphereGeometry( 0.995, 64, 64 );
     sphere = new THREE.Mesh(sphere_geom, sphere_mat);
+    sphere.name = "sphere";
     scene.add(sphere);
 
     let center_mat = new THREE.MeshLambertMaterial({color: 0x222222});
     let center_geom = new THREE.SphereGeometry( 0.025, 32, 32 );
     let center = new THREE.Mesh(center_geom, center_mat);
+    center.name = "center";
     scene.add(center);
-    
+
     points = [];
     branch_lines = new THREE.Group();
+    branch_lines.name = "branch_lines";
     branch_points = new THREE.Group();
+    branch_points.name = "branch_points";
     scene.add(branch_lines);
     scene.add(branch_points);
 
     selector = new THREE.Mesh(new THREE.SphereGeometry( 0.026, 16, 16 ), new THREE.MeshLambertMaterial({color: 0x22FFFF}));
     selector.material.visible = false;
+    selector.name = "selector";
     scene.add(selector);
 }
 
@@ -424,7 +430,7 @@ function create_delaunay()
 function show_delaunay()
 {
 	showing.delaunay = true;
-	delaunay_renderer.create_geodesics(colors.delaunay);
+	delaunay_renderer.create_geodesics({color: colors.delaunay});
     scene.add(delaunay_renderer.geodesics);
 }
 
@@ -435,7 +441,7 @@ function update_delaunay(on)
 		scene.remove(delaunay_renderer.geodesics);
 		scene.remove(delaunay_renderer.edges);
 	}
-	
+
 	if(on) create_delaunay();
 	if(on && showing.delaunay) show_delaunay();
 }
@@ -469,6 +475,7 @@ function update_voronoi(on)
 	{
 		scene.remove(voronoi_renderer.geodesics);
 		scene.remove(voronoi_renderer.points);
+		scene.remove(voronoi_renderer.curved_faces);
 	}
 
 	if(on) create_voronoi();
@@ -478,10 +485,12 @@ function update_voronoi(on)
 function show_voronoi()
 {
 	showing_voronoi = true;
-	voronoi_renderer.create_geodesics(colors.voronoi);
-	voronoi_renderer.create_points(colors.voronoi_points);
+	voronoi_renderer.create_geodesics({color: colors.voronoi});
+	voronoi_renderer.create_points({color: colors.voronoi_points});
     scene.add(voronoi_renderer.points);
     scene.add(voronoi_renderer.geodesics);
+
+    test_voronoi_map();
 }
 
 function hide_voronoi()
@@ -519,8 +528,8 @@ function update_iteration(on)
 function show_iteration()
 {
 	showing.iteration = true;
-	iteration_renderer.create_points(colors.partition_points);
-	iteration_renderer.create_geodesics(colors.partition);
+    iteration_renderer.create_points(colors.partition_points);
+	iteration_renderer.create_geodesics({color: colors.partition});
 	scene.add(iteration_renderer.points);
 	scene.add(iteration_renderer.geodesics);
 }
@@ -532,15 +541,6 @@ var quad_input_map;
 var quad_input_del_map;
 var quad_input_renderer;
 var quad_input_del_renderer;
-
-// function rotate_frame(i, angle)
-// {
-//     if(!quad_input_frames) return;
-
-//     quad_input_frames[i][0].applyAxisAngle(points[i], angle);
-//     quad_input_frames[i][1].applyAxisAngle(points[i], angle);
-//     require_update();
-// }
 
 function create_quad_input_frames()
 {
@@ -601,12 +601,11 @@ function show_quad_input()
 	scene.add(quad_input_del_renderer.points);
 	scene.add(quad_input_renderer.geodesics);
 }
- 
+
 function tbd()
 {
     let fe = mark_vertices_seed(quad_input_map);
     let map = quad_input_map;
-    console.log(fe);
     let material = new THREE.LineBasicMaterial({color:0xFFFFFF});
     let material1 = new THREE.LineBasicMaterial({color:0xFFFF00});
     let geodesics = new THREE.Group();
@@ -615,7 +614,7 @@ function tbd()
         frame.forEach(d => {
         let line = new THREE.Line(new THREE.Geometry(), material);
             line.geometry.vertices = new_geodesic(
-                pos[map.cell[map.vertex](d)], 
+                pos[map.cell[map.vertex](d)],
                 pos[map.cell[map.vertex](map.phi2(d))],
                 100);
             geodesics.add(line);
@@ -626,13 +625,13 @@ function tbd()
         frame.forEach(d => {
         let line = new THREE.Line(new THREE.Geometry(), material1);
             line.geometry.vertices = new_geodesic(
-                pos[map.cell[map.vertex](map.phi1(d))], 
+                pos[map.cell[map.vertex](map.phi1(d))],
                 pos[map.cell[map.vertex](map.phi2(map.phi1(d)))],
                 100);
             geodesics.add(line);
             line = new THREE.Line(new THREE.Geometry(), material1);
             line.geometry.vertices = new_geodesic(
-                pos[map.cell[map.vertex](map.phi1(d))], 
+                pos[map.cell[map.vertex](map.phi1(d))],
                 pos[map.cell[map.vertex](map.phi_1(map.phi2(d)))],
                 100);
             geodesics.add(line);
@@ -644,29 +643,37 @@ function tbd()
 }
 
 function get_frame_rotations(map)
-{   
-    const vertex = map.vertex;
-    const pos = map.get_attribute[vertex]("position");
+{
+    const VERTEX = map.vertex;
+    const pos = map.get_attribute[VERTEX]("position");
 
     let rotations = [];
     let frames = mark_vertices_seed(map);
+    const vertex_colors = map.get_attribute[VERTEX]("vertex_colors");
 
     for(let i = 0; i < frames.length; i++)
     {
         let frame_rotation = new Array(4);
         for(let j = 0; j < 4; j++)
         {
-            let A = pos[map.cell[map.vertex](map.phi1(frames[i][j]))];
-            let r = geodesic_length(
-                    A, 
-                    pos[map.cell[map.vertex](map.phi2(map.phi1(frames[i][j])))]
-                );
-            let r_ = geodesic_length(
-                A, 
-                pos[map.cell[map.vertex](map.phi_1(map.phi2(frames[i][j])))]
+            let A = pos[map.cell[VERTEX](map.phi1(frames[i][j]))];
+            let r = 0;
+            if(vertex_colors[map.cell[VERTEX](map.phi2(map.phi1(frames[i][j])))] == 2)
+                r = geodesic_length(
+                        A,
+                        pos[map.cell[VERTEX](map.phi2(map.phi1(frames[i][j])))]
                 );
 
-            frame_rotation[j] = r - r_;
+            let r_ = 0;
+            if(vertex_colors[map.cell[VERTEX](map.phi_1(map.phi2(frames[i][j])))] == 2)
+
+                r_ = geodesic_length(
+                    A,
+                    pos[map.cell[VERTEX](map.phi_1(map.phi2(frames[i][j])))]
+                );
+
+            frame_rotation[j] = r < r_? -r_ : r;
+            // console.log(frame_rotation[j])
         }
         rotations.push(frame_rotation);
     }
@@ -682,7 +689,7 @@ function rotate_frames(dt)
     for(let i = 0; i < rotations.length; ++i)
     {
         let avg_rot = rotations[i][0] + rotations[i][1] +
-            rotations[i][2] + rotations[i][3]; 
+            rotations[i][2] + rotations[i][3];
         quad_input_frame_rotations[i] += avg_rot * dt
     }
     console.log(quad_input_frame_rotations);
@@ -701,6 +708,7 @@ var last_drawn_line;
 function init_drawing()
 {
     hand_drawn_lines = new THREE.Group();
+    hand_drawn_lines.name = "drawing";
     last_drawn_line = [];
     scene.add(hand_drawn_lines);
 }
@@ -736,3 +744,293 @@ function delete_last_line()
     if(last_drawn_line.length)
         hand_drawn_lines.remove(last_drawn_line.pop());
 }
+
+
+var vrcf = undefined;
+function test_voronoi_map()
+{
+    const map = voronoi_map;
+    const vertex = voronoi_map.vertex;
+    const edge = voronoi_map.edge;
+    const face = voronoi_map.face;
+
+    if(!map.is_embedded[edge]())
+        map.set_embeddings[edge]();
+
+    if(!map.is_embedded[face]())
+        map.set_embeddings[face]();
+
+    let edge_col = map.get_attribute[edge]("edge_color");
+    if(!edge_col)
+        edge_col = map.add_attribute[edge]("edge_color");
+
+    let face_col = map.get_attribute[face]("face_color");
+    if(!face_col)
+        face_col = map.add_attribute[face]("face_color");
+
+    if(voronoi_renderer.points)
+        scene.remove(voronoi_renderer.points);
+    
+    voronoi_renderer.create_points({color: colors.voronoi_points});
+    scene.add(voronoi_renderer.points);
+
+    mark_face_degree(voronoi_map);
+    let face_degree = map.get_attribute[face]("face_degree");
+    map.foreach[face](
+        fd => {
+            n = face_degree[map.cell[face](fd)];
+
+            if(n < 4)
+                face_col[map.cell[face](fd)] = new THREE.Color(0.7, 0, 0);
+            if(n == 4)
+                face_col[map.cell[face](fd)] = new THREE.Color(0, 0.7, 0);
+            if(n > 4)
+                face_col[map.cell[face](fd)] = new THREE.Color(0, 0, 0.7);
+
+        });
+
+    if(voronoi_renderer.curved_faces);
+        scene.remove(voronoi_renderer.curved_faces);
+
+    voronoi_renderer.create_curved_faces({faceColors: face_col, opacity: 0.5});
+    scene.add(voronoi_renderer.curved_faces);
+
+    map.foreach[edge](
+        ed => {
+            let n0 = face_degree[map.cell[face](ed)];
+            let n1 = face_degree[map.cell[face](map.phi2(ed))];
+
+            if(n0 == 4 && n1 == 4)
+                edge_col[map.cell[edge](ed)] = new THREE.Color(0, 1, 0);
+            if(n0 == 3 && n1 == 3)
+                edge_col[map.cell[edge](ed)] = new THREE.Color(1, 0, 0);
+            if(n0 > 4 && n1 > 4)
+                edge_col[map.cell[edge](ed)] = new THREE.Color(0, 0, 1);
+            if((n0 > 4 && n1 < 4) || (n0 < 4 && n1 > 4))
+                edge_col[map.cell[edge](ed)] = new THREE.Color(1, 0, 1);
+            if((n0 < 4 && n1 == 4) || (n0 == 4 && n1 < 4))
+                edge_col[map.cell[edge](ed)] = new THREE.Color(1, 1, 0);
+            if((n0 == 4 && n1 > 4) || (n0 > 4 && n1 == 4))
+                edge_col[map.cell[edge](ed)] = new THREE.Color(0, 1, 1);
+        });
+
+    if(voronoi_renderer.geodesics)
+        scene.remove(voronoi_renderer.geodesics);
+    voronoi_renderer.create_geodesics({edgeColors: edge_col, width: 4});
+    scene.add(voronoi_renderer.geodesics);
+}
+
+function mark_face_degree(map)
+{
+    const face = map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    if(!face_degree)
+        face_degree = map.add_attribute[face]("face_degree");
+
+    map.foreach[face](
+        fd => {
+            let n = 0;
+            map.foreach_dart_of[face](fd,
+                d => {
+                    ++n;
+                });
+
+            face_degree[map.cell[face](fd)] = n;
+        });
+}
+
+function get_triangles(map)
+{
+    const face = map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    let triangles = [];
+
+    let n;
+    map.foreach[face](
+        fd => {
+            n = face_degree[map.cell[face](fd)];
+            if(n == 3)
+                triangles.push(fd)
+        });
+
+    return triangles
+}
+
+function get_polys(map)
+{
+    const face = map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    let polys = [];
+
+    let n;
+    map.foreach[face](
+        fd => {
+            n = face_degree[map.cell[face](fd)];
+            if(n > 4)
+                polys.push(fd)
+        });
+
+    polys.sort(
+        function(a, b){
+            if(face_degree[map.cell[face](a)] > face_degree[map.cell[face](b)])
+                return -1;
+            if(face_degree[map.cell[face](a)] < face_degree[map.cell[face](b)])
+                return 1;
+            return 0;
+        });
+    
+    polys.forEach(fd => console.log(fd, face_degree[map.cell[face](fd)]))
+    return polys
+}
+
+// sorted by length
+function lowest_degree_neighbor(fd)
+{
+    const face = map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    let neighbors = [];
+
+    let n;
+    map.foreach[face](
+        fd => {
+            n = face_degree[map.cell[face](fd)];
+            if(n == 3)
+                neighbors.push(fd)
+        });
+
+    neighbors.sort(function(a, b){
+        if(face_degree[map.cell[face](a)] > face_degree[map.cell[face](b)])
+            return -1;
+        if(face_degree[map.cell[face](a)] < face_degree[map.cell[face](b)])
+            return 1;
+        return 0;
+    });
+
+    return neighbors;
+}
+
+function cut_edge_voronoi(ed)
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    
+    const pos = map.get_attribute[vertex]("position");
+    let p0 = pos[map.cell[vertex](ed)];
+    let p1 = pos[map.cell[vertex](map.phi2(ed))];
+    let p = p0.clone().add(p1).normalize();
+    let v = map.cut_edge(ed);
+    pos[map.cell[vertex](v)] = p;
+}
+
+function collapse_edge_voronoi(ed)
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    
+    const pos = map.get_attribute[vertex]("position");
+
+    let p0 = pos[map.cell[vertex](ed)];
+    let p1 = pos[map.cell[vertex](map.phi2(ed))];
+    let p = p0.clone().add(p1).normalize();
+    let v = map.collapse_edge(ed);
+    pos[map.cell[vertex](v)] = p;
+}
+
+function get_shortest_edge(fd)
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    
+    const pos = map.get_attribute[vertex]("position");
+
+    let min = 10;
+    let min_ed;
+    map.foreach_dart_of[face](fd, 
+        d => {
+            let p0 = pos[map.cell[vertex](d)];
+            let p1 = pos[map.cell[vertex](map.phi2(d))];
+            let dist = p0.angleTo(p1);
+            if(dist < min)
+            {
+                min = dist;
+                min_ed = d;
+            }
+        });
+    return min_ed;
+}
+
+function get_longest_edge(fd)
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    
+    const pos = map.get_attribute[vertex]("position");
+
+    let max = 0;
+    let max_ed;
+    map.foreach_dart_of[face](fd, 
+        d => {
+            let p0 = pos[map.cell[vertex](d)];
+            let p1 = pos[map.cell[vertex](map.phi2(d))];
+            let dist = p0.angleTo(p1);
+            if(dist > max)
+            {
+                max = dist;
+                max_ed = d;
+            }
+        });
+    return max_ed;
+}
+
+function show_info_voronoi_map()
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    
+    const pos = map.get_attribute[vertex]("position");
+    const face_degree = map.get_attribute[face]("face_degree");
+
+    map.foreach[face](
+        fd => {
+            let neighbors = [];
+            let n = face_degree[map.cell[face](fd)];
+            map.foreach_dart_of[face](fd, 
+                d => {
+                    let p0 = pos[map.cell[vertex](d)];
+                    let p1 = pos[map.cell[vertex](map.phi2(d))];
+                    let dist = p0.angleTo(p1);
+                    let n2 = face_degree[map.cell[face](map.phi2(d))];
+                    neighbors.push({d: map.phi2(d), l: dist, n: n2});
+                });
+
+            console.log(fd, n, ...neighbors);
+        });
+
+    
+    return;
+}
+
+
+// function show_voronoi()
+// {
+// 	showing_voronoi = true;
+// 	voronoi_renderer.create_geodesics({color: colors.voronoi});
+// 	voronoi_renderer.create_points({color: colors.voronoi_points});
+//     scene.add(voronoi_renderer.points);
+//     scene.add(voronoi_renderer.geodesics);
+// }
+
+// function hide_voronoi()
+// {
+// 	showing_voronoi = false;
+// 	scene.remove(voronoi_renderer.geodesics);
+//     scene.remove(voronoi_renderer.points);
+// }

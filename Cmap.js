@@ -66,6 +66,7 @@ const CMap_Base = {
 	get_attribute: undefined,
 	remove_attribute: undefined,
 	new_cell: undefined,
+	delete_cell: undefined,
 
 	create_embedding: undefined,
 	is_embedded: undefined,
@@ -89,6 +90,7 @@ const CMap_Utils = {
 			cmap.get_attribute.push(function(name){return attrib_container.get_attribute(name)});
 			cmap.remove_attribute.push(function(attrib){attrib_container.remove_attribute(attrib.name)});
 			cmap.new_cell.push(function(){return attrib_container.new_element()});
+			cmap.delete_cell.push(function(e){attrib_container.delete_element(e)});
 			
 			cmap._embeddings.push(null);
 			cmap.create_embedding.push(function(){
@@ -109,6 +111,7 @@ function CMap0()
 	cmap.get_attribute = [];
 	cmap.remove_attribute = [];
 	cmap.new_cell = [];
+	cmap.delete_cell = [];
 	cmap.cell = [];
 	cmap.create_embedding = [];
 	cmap.is_embedded = [];
@@ -235,7 +238,6 @@ function CMap1()
 	// foreach face
 	cmap1.foreach.push(func => {
 		let marker = cmap1.create_dart_marker();
-		// console.log(marker.length);
 		cmap1.foreach_dart(
 			d => {
 				if(marker[d])
@@ -286,14 +288,38 @@ function CMap1()
 	cmap1.cut_edge = function(ed, set_embeddings = true)
 		{
 			let d0 = ed;
-			let d1 = cmap1.new_dart();
+			let d1 = this.new_dart();
 
-			cmap1.sew_phi1(d0, d1);
+			this.sew_phi1(d0, d1);
 
 			if(set_embeddings){
-				if(cmap1.is_embedded[cmap1.vertex]())
-					cmap1.set_embedding[cmap1.vertex](d1, cmap1.new_cell[cmap1.vertex]());
+				if(this.is_embedded[this.vertex]())
+					this.set_embedding[this.vertex](d1, this.new_cell[this.vertex]());
 			}
+
+			return d1;
+		}
+
+	cmap1.collapse_edge = function(ed, set_embeddings = true)
+		{
+			let d0 = ed;
+			let d1 = this.phi1(d0);
+			let d_1 = this.phi_1(d0);
+
+			this._topology.phi1[d_1] = d1;
+			this._topology.phi_1[d1] = d_1;
+
+			if(set_embeddings){
+				if(this.is_embedded[this.vertex]())
+				{
+					this.set_embedding[this.vertex](d1, this.cell[this.vertex](d0));
+
+				}
+				if(this.is_embedded[this.edge]())
+					this.delete_cell[this.edge](this.cell[this.edge](ed));
+			}
+
+			this.delete_dart(ed);
 
 			return d1;
 		}
@@ -325,7 +351,7 @@ function CMap2()
 			this._topology.phi2[d1] = d1;
 		};
 
-	cmap2.foreach_dart_phi2 = function(d0, func)
+	cmap2.foreach_dart_phi2 = function(d, func)
 		{
 			func(d);
 			func(this.phi2(d));	
@@ -367,7 +393,7 @@ function CMap2()
 			let marker = cmap2.create_dart_marker();
 			cmap2.foreach_dart(
 				d => {
-					if(marker[d])
+					if(d == -1 || marker[d])
 						return;
 
 					cmap2.foreach_dart_phi12(d, d1 => {marker[d1] = true});
@@ -420,7 +446,7 @@ function CMap2()
 
 			cmap2.foreach[cmap2.edge](ed => {
 				let eid = cmap2.new_cell[cmap2.edge]();
-				cmap2.foreach_dart_phi12(ed,
+				cmap2.foreach_dart_phi2(ed,
 					d => {
 						cmap2.set_embedding[cmap2.edge](d, eid);
 					}
@@ -442,19 +468,50 @@ function CMap2()
 			this.sew_phi2(e0, d1);	
 
 			if(set_embeddings){
-				if(cmap2.is_embedded[cmap2.vertex]())
+				if(this.is_embedded[this.vertex]())
 				{
-					let vid = cmap2.new_cell[cmap2.vertex]()
-					cmap2.set_embedding[cmap2.vertex](d1, vid);
-					cmap2.set_embedding[cmap2.vertex](e1, vid);
+					let vid = this.new_cell[this.vertex]();
+					this.set_embedding[this.vertex](d1, vid);
+					this.set_embedding[this.vertex](e1, vid);
 				}
-				if(cmap2.is_embedded[cmap2.face]())
+				if(this.is_embedded[this.face]())
 				{
-					cmap2.set_embedding[cmap2.face](d1, cmap2.cell[cmap2.face](d0));
-					cmap2.set_embedding[cmap2.face](e1, cmap2.cell[cmap2.face](e0));
+					this.set_embedding[this.face](d1, this.cell[this.face](d0));
+					this.set_embedding[this.face](e1, this.cell[this.face](e0));
 				}
 			}
 
+			return d1;
+		}
+
+	cmap2.collapse_edge1 = cmap2.collapse_edge;
+	cmap2.collapse_edge = function(ed, set_embeddings = true)
+		{
+			let d0 = ed;
+			let e0 = this.phi2(ed);
+
+			this.unsew_phi2(d0);
+			let d1 = this.collapse_edge1(d0, false);
+			let e1 = this.collapse_edge1(e0, false);
+
+			if(set_embeddings){
+				if(this.is_embedded[this.vertex]())
+				{
+					let vid0 = this.cell[this.vertex](d1);
+					let vid1 = this.cell[this.vertex](e1);
+					cmap2.foreach_dart_phi12(e1,
+						d => {
+							this.set_embedding[this.vertex](d, vid0);
+						}
+					);
+					cmap2.delete_cell[this.vertex](vid1);
+				}
+				// if(this.is_embedded[this.edge]())
+				// {
+				// 	this.set_embedding[this.edge](d1, vid);
+				// }
+			}
+			
 			return d1;
 		}
 	
