@@ -238,6 +238,7 @@ function CMap1()
 	// foreach face
 	cmap1.foreach.push(func => {
 		let marker = cmap1.create_dart_marker();
+		// console.log(marker.length);
 		cmap1.foreach_dart(
 			d => {
 				if(marker[d])
@@ -320,6 +321,26 @@ function CMap1()
 			}
 
 			this.delete_dart(ed);
+
+			return d1;
+		}
+
+	cmap1.split_vertex = function(vd, set_embeddings = true)
+		{
+			let d0 = this.phi_1(vd);
+			let d1 = this.new_dart();
+
+			this.sew_phi1(d0, d1);
+
+			if(set_embeddings){
+				if(this.is_embedded[this.vertex]())
+				{
+					this.set_embedding[this.vertex](d1, this.new_cell[this.vertex]());
+
+				}
+				if(this.is_embedded[this.edge]())
+					this.set_embedding[this.edge](d1, this.new_cell[this.edge]());
+			}
 
 			return d1;
 		}
@@ -446,12 +467,19 @@ function CMap2()
 
 			cmap2.foreach[cmap2.edge](ed => {
 				let eid = cmap2.new_cell[cmap2.edge]();
+				console.log("edge_id0", ed, cmap2.phi2(ed), eid)
 				cmap2.foreach_dart_phi2(ed,
 					d => {
 						cmap2.set_embedding[cmap2.edge](d, eid);
 					}
 				);
+				console.log("edge_id1", cmap2.cell[2](ed), cmap2.cell[2](cmap2.phi2(ed)))
+
 			});
+
+			cmap2.foreach_dart(d => {
+				console.log(d, cmap2.cell[2](d));
+			})
 		}
 
 	cmap2.cut_edge1 = cmap2.cut_edge;
@@ -471,6 +499,8 @@ function CMap2()
 				if(this.is_embedded[this.vertex]())
 				{
 					let vid = this.new_cell[this.vertex]();
+					console.log(this._attributes_containers[1]._free_indices)
+					console.log("new vertex", vid);
 					this.set_embedding[this.vertex](d1, vid);
 					this.set_embedding[this.vertex](e1, vid);
 				}
@@ -489,11 +519,17 @@ function CMap2()
 		{
 			let d0 = ed;
 			let e0 = this.phi2(ed);
-
+			
+			// console.log(this.phi1(d0), this.phi_1(d0));
+			// console.log(this.phi1(e0), this.phi_1(e0));
+			
 			this.unsew_phi2(d0);
 			let d1 = this.collapse_edge1(d0, false);
 			let e1 = this.collapse_edge1(e0, false);
-
+			
+			// console.log(d1, this.phi_1(d1));
+			// console.log(e1, this.phi_1(e1));
+			
 			if(set_embeddings){
 				if(this.is_embedded[this.vertex]())
 				{
@@ -568,6 +604,42 @@ function CMap2()
 			// }
 			return e0;
 		}
+
+	cmap2.split_vertex1 = cmap2.split_vertex;
+	cmap2.split_vertex = function(vd0, vd1, set_embeddings = true)
+		{
+
+			let d0 = this.split_vertex1(vd0, false);
+			let d1 = this.split_vertex1(vd1, false);
+
+			this.sew_phi2(d0, d1);
+
+			if(set_embeddings){
+				if(this.is_embedded[cmap2.vertex]())
+				{
+					let vid = this.new_cell[this.vertex]();
+					this.foreach_dart_of[this.vertex](d0, 
+						d => {
+							this.set_embedding[cmap2.vertex](d, vid);
+						});
+					this.set_embedding[cmap2.vertex](d1, this.cell[this.vertex](vd0));
+				}
+				if(this.is_embedded[cmap2.edge]())
+				{
+					let eid = this.new_cell[this.edge]();
+					this.set_embedding[cmap2.edge](d0, eid);
+					this.set_embedding[cmap2.edge](d1, eid);
+				}
+				if(this.is_embedded[cmap2.face]())
+				{
+					this.set_embedding[cmap2.face](d0, this.cell[this.face](vd0));
+					this.set_embedding[cmap2.face](d1, this.cell[this.face](vd1));
+				}
+			}
+
+			return d0;
+		}
+	
 
 	return cmap2;
 }
