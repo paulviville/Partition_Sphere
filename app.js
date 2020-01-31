@@ -87,7 +87,7 @@ var quad_rotation = {
     gizmo: undefined
 }
 // GUI
-let gui = new dat.GUI({autoPlace: true});
+let gui = new dat.GUI({autoPlace: true, hideable: false});
 
 gui.add(showing, "partition").onChange(require_update);
 let folder_partition = gui.addFolder("Partition Colors");
@@ -111,7 +111,7 @@ folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
-folder_test.add(test_sets, "nb_branches").onChange(require_update);
+folder_test.add(test_sets, "nb_branches").min(3).max(50).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
@@ -212,7 +212,7 @@ function onKeyDown(event)
 
 function onKeyUp(event)
 {
-    // console.log(event.which);
+    console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
         case 8: // backspace
@@ -221,6 +221,9 @@ function onKeyUp(event)
         case 68: // d
             drawing0 = null;
             drawing1 = null;
+            break;
+        case 78: // n
+            step_voronoi_remesh();
             break;
         case 82: //r
             reset_drawing()
@@ -673,7 +676,6 @@ function get_frame_rotations(map)
                 );
 
             frame_rotation[j] = r < r_? -r_ : r;
-            // console.log(frame_rotation[j])
         }
         rotations.push(frame_rotation);
     }
@@ -685,14 +687,12 @@ function rotate_frames(dt)
 {
     const map = quad_input_map;
     let rotations = get_frame_rotations(map);
-    console.log(rotations);
     for(let i = 0; i < rotations.length; ++i)
     {
         let avg_rot = rotations[i][0] + rotations[i][1] +
             rotations[i][2] + rotations[i][3];
         quad_input_frame_rotations[i] += avg_rot * dt
     }
-    console.log(quad_input_frame_rotations);
     update_quad_input(true);
 }
 
@@ -867,26 +867,28 @@ function get_polys(map)
         fd => {
             n = face_degree[map.cell[face](fd)];
             if(n > 4)
-                polys.push(fd)
+                polys.push([fd, n]);
         });
 
-    polys.sort(
-        function(a, b){
-            if(face_degree[map.cell[face](a)] > face_degree[map.cell[face](b)])
+    polys.sort(function(a, b){
+            if(a[1] > b[1])
                 return -1;
-            if(face_degree[map.cell[face](a)] < face_degree[map.cell[face](b)])
+            if(a[1] < b[1])
                 return 1;
             return 0;
         });
     
-    polys.forEach(fd => console.log(fd, face_degree[map.cell[face](fd)]))
+    // polys.forEach(fd => console.log(fd, face_degree[map.cell[face](fd)]))
     return polys
 }
 
 // sorted by length
-function lowest_degree_neighbor(fd)
+function lowest_degree_neighbors(fd)
 {
-    const face = map.face;
+    const map = voronoi_map;
+    const vertex = voronoi_map.vertex;
+    const edge = voronoi_map.edge;
+    const face = voronoi_map.face;
     let face_degree = map.get_attribute[face]("face_degree");
     let neighbors = [];
 
@@ -894,17 +896,43 @@ function lowest_degree_neighbor(fd)
     map.foreach[face](
         fd => {
             n = face_degree[map.cell[face](fd)];
-            if(n == 3)
-                neighbors.push(fd)
+            neighbors.push([fd, n])
         });
 
     neighbors.sort(function(a, b){
-        if(face_degree[map.cell[face](a)] > face_degree[map.cell[face](b)])
+        if(a[1] < b[1])
             return -1;
-        if(face_degree[map.cell[face](a)] < face_degree[map.cell[face](b)])
+        if(a[1] > b[1])
             return 1;
         return 0;
     });
+    console.log(neighbors);
+    return neighbors;
+}
+
+function highest_degree_neighbors(fd)
+{
+    const map = voronoi_map;
+    const vertex = voronoi_map.vertex;
+    const edge = voronoi_map.edge;
+    const face = voronoi_map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    let neighbors = [];
+
+    let n;
+    map.foreach_dart_of[face](fd,
+        d => {
+            n = face_degree[map.cell[face](map.phi2(d))];
+            neighbors.push([d, n])
+        });
+
+        neighbors.sort(function(a, b){
+            if(a[1] > b[1])
+                return -1;
+            if(a[1] < b[1])
+                return 1;
+            return 0;
+        });
 
     return neighbors;
 }
@@ -918,7 +946,8 @@ function cut_edge_voronoi(ed)
     const pos = map.get_attribute[vertex]("position");
     let p0 = pos[map.cell[vertex](ed)];
     let p1 = pos[map.cell[vertex](map.phi2(ed))];
-    let p = p0.clone().add(p1).normalize();
+    let p = slerp(p0, p1, 0.5);
+    // let p = p0.clone().add(p1).normalize();
     let v = map.cut_edge(ed);
     pos[map.cell[vertex](v)] = p;
 }
@@ -933,7 +962,8 @@ function collapse_edge_voronoi(ed)
 
     let p0 = pos[map.cell[vertex](ed)];
     let p1 = pos[map.cell[vertex](map.phi2(ed))];
-    let p = p0.clone().add(p1).normalize();
+    let p = slerp(p0, p1, 0.5);
+    // let p = p0.clone().add(p1).normalize();
     let v = map.collapse_edge(ed);
     pos[map.cell[vertex](v)] = p;
 }
@@ -988,6 +1018,19 @@ function get_longest_edge(fd)
     return max_ed;
 }
 
+function edge_length(ed)
+{
+    const map = voronoi_map;
+    const vertex = map.vertex;
+
+    const pos = map.get_attribute[vertex]("position");
+    let p0 = pos[map.cell[vertex](ed)];
+    let p1 = pos[map.cell[vertex](map.phi2(ed))];
+    let dist = p0.angleTo(p1);
+
+    return dist;
+}
+
 function show_info_voronoi_map()
 {
     const map = voronoi_map;
@@ -1018,19 +1061,63 @@ function show_info_voronoi_map()
     return;
 }
 
+function step_voronoi_remesh()
+{
+    mark_face_degree(voronoi_map);
 
-// function show_voronoi()
-// {
-// 	showing_voronoi = true;
-// 	voronoi_renderer.create_geodesics({color: colors.voronoi});
-// 	voronoi_renderer.create_points({color: colors.voronoi_points});
-//     scene.add(voronoi_renderer.points);
-//     scene.add(voronoi_renderer.geodesics);
-// }
+    const map = voronoi_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    const pos = map.get_attribute[vertex]("position");
+    const face_degree = map.get_attribute[face]("face_degree");
 
-// function hide_voronoi()
-// {
-// 	showing_voronoi = false;
-// 	scene.remove(voronoi_renderer.geodesics);
-//     scene.remove(voronoi_renderer.points);
-// }
+    const polys = get_polys(voronoi_map);
+    console.log("polys: ", polys);
+
+    if(polys.length)
+    {
+        let poly = polys[0];
+        largest_neighbors = highest_degree_neighbors(poly[0]);
+        let max_degree = largest_neighbors[0][1];
+        let i = 1;
+        let selected = 0;
+        let shortest_edge = edge_length(largest_neighbors[0][0]);
+        while(i < largest_neighbors.length && largest_neighbors[i][1] == max_degree)
+        {
+            let el = edge_length(largest_neighbors[i][0]);
+            if(el < shortest_edge)
+            {
+                shortest_edge = el;
+                selected = i;
+            }
+            i++;
+        }
+        collapse_edge_voronoi(largest_neighbors[selected][0]);
+    }
+    else
+    {
+        const tris = get_triangles(voronoi_map);
+        if(tris.length)
+        {
+            let tri = tris[0];
+            smallest_neighbors = lowest_degree_neighbors(tri[0]);
+            let min_degree = smallest_neighbors[0][1];
+            let i = 1;
+            let selected = 0;
+            let longest_edge = edge_length(smallest_neighbors[0][0]);
+            while(i < smallest_neighbors.length && smallest_neighbors[i][1] == min_degree)
+            {
+                let el = edge_length(smallest_neighbors[i][0]);
+                if(el > longest_edge)
+                {
+                    longest_edge = el;
+                    selected = i;
+                }
+                i++;
+            }
+            cut_edge_voronoi(smallest_neighbors[selected][0]);
+        }
+    }
+    test_voronoi_map();
+}
