@@ -85,6 +85,16 @@ function create_core(map, A, B, C)
 	pos[map.cell[VERTEX](map.phi1(d0))] = Qs[0];
 	pos[map.cell[VERTEX](map.phi_1(d0))] = Qs[1];
 
+    if(Qs[0].dot(A.clone().cross(B)) < 0){
+        Ms[0].negate();
+    }
+    if(Qs[0].dot(B.clone().cross(C)) < 0){
+        Ms[1].negate();
+    }
+    if(Qs[0].dot(C.clone().cross(A)) < 0){
+        Ms[2].negate();
+    }
+
 	map.set_embeddings[FACE]();
 	let face_point = map.add_attribute[FACE]("face_point");
 	face_point[map.cell[FACE](d0)] = A;
@@ -93,6 +103,7 @@ function create_core(map, A, B, C)
 
 	return;
 }
+
 
 function get_Qs(A, B, C)
 {
