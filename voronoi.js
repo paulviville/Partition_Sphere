@@ -10,6 +10,58 @@ function delaunay(points)
 	return m2;
 }
 
+function map_dual(map, func_vertex_pos, set_ids)
+{
+	let vertex = map.vertex;
+	let face = map.face;
+
+	let in_pos = map.get_attribute[vertex]("position");
+	map.set_embeddings[face]();
+    let dual_pos = map.add_attribute[face]("dual_pos");
+	let id = 0;
+
+	let out_pos = [];
+    map.foreach[face](
+        fd => {
+            let points = [];
+            map.foreach_dart_of[face](fd,
+                d => {
+                    points.push(in_pos[map.cell[vertex](d)]);
+                });
+            let n = func_vertex_pos(points);
+            out_pos.push([n.x, n.y, n.z]);
+            dual_pos[map.cell[face](fd)] = id++;
+        }
+    );
+
+    let faces = [];
+    let vertex_ids = [];
+    map.foreach[vertex](
+        vd => {
+            let f = [];
+            map.foreach_dart_of[vertex](vd, 
+                fd => {
+                    f.unshift(dual_pos[map.cell[face](fd)]);
+                }
+            );
+            if(set_ids)
+                vertex_ids.push(map.cell[vertex](vd));
+            faces.push(f);
+        }
+	);
+	
+    // map.remove_attribute[face](dual_pos);
+
+    let dual_map;
+    dual_map = cmap2_from_geometry({v:out_pos, f:faces});
+    if(set_ids){
+        dual_map.set_embeddings[face]();
+        let vertex_id = dual_map.add_attribute[face]("vertex_id");
+        dual_map.foreach[face](fd => vertex_id[dual_map.cell[face](fd)] = vertex_ids.shift());
+    }
+	return dual_map;
+}
+
 function voronoi(del_map, set_ids)
 {
 	let VERTEX = del_map.vertex;

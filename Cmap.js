@@ -238,7 +238,6 @@ function CMap1()
 	// foreach face
 	cmap1.foreach.push(func => {
 		let marker = cmap1.create_dart_marker();
-		// console.log(marker.length);
 		cmap1.foreach_dart(
 			d => {
 				if(marker[d])
@@ -467,19 +466,13 @@ function CMap2()
 
 			cmap2.foreach[cmap2.edge](ed => {
 				let eid = cmap2.new_cell[cmap2.edge]();
-				console.log("edge_id0", ed, cmap2.phi2(ed), eid)
 				cmap2.foreach_dart_phi2(ed,
 					d => {
 						cmap2.set_embedding[cmap2.edge](d, eid);
 					}
 				);
-				console.log("edge_id1", cmap2.cell[2](ed), cmap2.cell[2](cmap2.phi2(ed)))
 
 			});
-
-			cmap2.foreach_dart(d => {
-				console.log(d, cmap2.cell[2](d));
-			})
 		}
 
 	cmap2.cut_edge1 = cmap2.cut_edge;
@@ -499,8 +492,8 @@ function CMap2()
 				if(this.is_embedded[this.vertex]())
 				{
 					let vid = this.new_cell[this.vertex]();
-					console.log(this._attributes_containers[1]._free_indices)
-					console.log("new vertex", vid);
+					// console.log(this._attributes_containers[1]._free_indices)
+					// console.log("new vertex", vid);
 					this.set_embedding[this.vertex](d1, vid);
 					this.set_embedding[this.vertex](e1, vid);
 				}
@@ -551,6 +544,37 @@ function CMap2()
 			return d1;
 		}
 	
+	cmap2.merge_faces = function(ed, set_embeddings = true)
+		{
+			let fd = cmap2.phi1(ed);
+			let d0 = ed, 
+				d1 = cmap2.phi2(ed);
+
+			cmap2.sew_phi1(cmap2.phi_1(d0), d1);
+			cmap2.sew_phi1(cmap2.phi_1(d1), d0);
+
+			if(set_embeddings){
+				if(this.is_embedded[cmap2.edge]())
+				{
+					this.delete_cell[this.edge](this.cell[this.edge](ed));
+				}
+				if(this.is_embedded[cmap2.face]())
+				{
+					let fid0 = this.cell[this.face](d0);
+					let fid1 = this.cell[this.face](d1);
+					this.foreach_dart_of[this.face](fd, 
+						d => {
+							this.set_embedding[cmap2.face](d, fid0);
+							console.log("f:", d);
+						});
+					this.delete_cell[this.face](this.cell[this.face](fid1));
+				}
+			}
+
+			cmap2.delete_dart(d0);
+			cmap2.delete_dart(d1);
+		}
+
 	cmap2.cut_face = function(fd0, fd1, set_embeddings = true)
 		{
 			let d0 = this._topology.phi_1[fd0];

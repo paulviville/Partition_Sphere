@@ -195,3 +195,11 @@ function convex_hull(points)
 	}
 	return triangles;
 }
+
+function barycenter(points)
+{
+	let bary = new THREE.Vector3();
+	points.forEach(p => bary.add(p));
+	bary.normalize();
+	return bary;
+}

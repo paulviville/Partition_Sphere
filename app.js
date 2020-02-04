@@ -45,6 +45,7 @@ var showing = {
     partition: false,
     voronoi: true,
     delaunay: false,
+    dual: false,
     quad_input: false,
 }
 
@@ -99,6 +100,7 @@ let folder_voronoi = gui.addFolder("Voronoi Colors");
 folder_voronoi.addColor(colors, 'voronoi').onChange(require_update);
 folder_voronoi.addColor(colors, 'voronoi_points').onChange(require_update);
 gui.add(showing, "delaunay").onChange(require_update);
+gui.add(showing, "dual").onChange(require_update);
 
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
@@ -435,6 +437,8 @@ function show_delaunay()
 	showing.delaunay = true;
 	delaunay_renderer.create_geodesics({color: colors.delaunay});
     scene.add(delaunay_renderer.geodesics);
+
+    if(showing.dual) modify_delaunay();
 }
 
 function update_delaunay(on)
@@ -1121,3 +1125,142 @@ function step_voronoi_remesh()
     }
     test_voronoi_map();
 }
+
+
+function mark_vertex_degree(map)
+{
+    const vertex = map.vertex;
+    let vertex_degree = map.get_attribute[vertex]("vertex_degree");
+    if(!vertex_degree)
+        vertex_degree = map.add_attribute[vertex]("vertex_degree");
+
+    map.foreach[vertex](
+        vd => {
+            let n = 0;
+            map.foreach_dart_of[vertex](vd,
+                d => {
+                    ++n;
+                });
+
+            vertex_degree[map.cell[vertex](vd)] = n;
+        });
+    
+    return vertex_degree;
+}
+
+let barys;
+let dual;
+function modify_delaunay()
+{
+    const map = delaunay_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    const pos = map.get_attribute[vertex]("position");
+    // map.merge_faces(0);
+
+    let edge_cache = []
+    map.foreach[edge](ed => edge_cache.push(ed));
+
+    const vertex_degree = mark_vertex_degree(map);
+
+
+    const col = map.add_attribute[vertex]("col");
+    map.foreach[map.vertex](
+        vd => {
+            let n = vertex_degree[map.cell[vertex](vd)];
+            if(n < 4)
+                col[map.cell[vertex](vd)] = new THREE.Color(1, 0, 0);
+            if(n == 4)
+                col[map.cell[vertex](vd)] = new THREE.Color(0, 1, 0);
+            if(n > 4)
+                col[map.cell[vertex](vd)] = new THREE.Color(0, 0, 1);
+        });
+
+    let barys_geo = new THREE.Geometry();
+    map.foreach[map.face](
+        fd => {
+            let points = [];
+            map.foreach_dart_of[face](fd,
+                d => {
+                    points.push(pos[map.cell[vertex](d)]);
+                });
+            barys_geo.vertices.push(barycenter(points));
+        });
+
+    let material = new THREE.PointsMaterial(
+        {
+            size: 0.025,
+            color: 0xFF0000
+        });
+
+
+    if(barys)
+        {
+            scene.remove(barys);
+            // barys.geometry.dipose();
+        }
+
+    barys = new THREE.Points(barys_geo, material); 
+    scene.add(barys);
+
+    scene.remove(delaunay_renderer.geodesics);
+    delaunay_renderer.create_geodesics({vertexColors: col});
+    // delaunay_renderer.create_points({color: 0xFF0000});
+    scene.add(delaunay_renderer.geodesics);
+    // scene.add(delaunay_renderer.points);
+
+    let dual_map = map_dual(delaunay_map, barycenter);
+    let dual_renderer = Renderer_Spherical(dual_map);
+
+    dual_renderer.create_geodesics({color: colors.delaunay});
+    scene.remove(dual);
+    dual = dual_renderer.geodesics;
+    scene.add(dual_renderer.geodesics);
+
+}
+
+
+
+function one_step_delaunay_remesh()
+{
+    const map = delaunay_map;
+    const vertex = map.vertex;
+    const edge = map.edge;
+    const face = map.face;
+    const vertex_degree = mark_vertex_degree(map);
+
+    let max_degree = 0;
+    let max_degree_vertex = -1;
+    map.foreach[vertex](
+        vd => {
+            if(vertex_degree[map.cell[vertex](vd)] > max_degree)
+            {
+                max_degree_vertex = vd;
+                max_degree = vertex_degree[map.cell[vertex](vd)];
+            }
+        });
+
+    console.log(max_degree_vertex, max_degree);
+    let max_degree = 0;
+    let max_degree_vertex = -1;
+    map.foreach_dart_of[vertex](max_degree_vertex, 
+        d => {
+
+        });
+
+    // map.foreach[map.edge](
+    //     ed => {
+    //         let vd0 = ed;
+    //         let vd1 = map.phi2(ed);
+            
+    //     });
+
+    modify_delaunay();
+}
+
+function remove_delaunay_edge(ed)
+{
+
+}
+
