@@ -1242,13 +1242,27 @@ function one_step_delaunay_remesh()
         });
 
     console.log(max_degree_vertex, max_degree);
-    let max_degree = 0;
-    let max_degree_vertex = -1;
-    map.foreach_dart_of[vertex](max_degree_vertex, 
-        d => {
 
-        });
+    if(max_degree > 4)
+    {   
+        let max_degree_neigh = 0;
+        let max_degree_neigh_vertex = -1;
+        map.foreach_dart_of[vertex](max_degree_vertex, 
+            d0 => {
+                let d2 = map.phi2(d0);
+                if(vertex_degree[map.cell[vertex](d2)] > max_degree_neigh)
+                {
+                    max_degree_neigh_vertex = d2;
+                    max_degree_neigh = vertex_degree[map.cell[vertex](d2)];
+                }
+            });
 
+        console.log(max_degree_neigh_vertex, max_degree_neigh);
+
+        map.merge_faces(max_degree_neigh_vertex);
+    }
+
+    
     // map.foreach[map.edge](
     //     ed => {
     //         let vd0 = ed;
