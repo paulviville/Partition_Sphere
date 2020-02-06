@@ -113,7 +113,7 @@ folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
-folder_test.add(test_sets, "nb_branches").min(3).max(50).step(1).onChange(require_update);
+folder_test.add(test_sets, "nb_branches").min(3).max(800).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
@@ -1261,8 +1261,42 @@ function one_step_delaunay_remesh()
 
         map.merge_faces(max_degree_neigh_vertex);
     }
+    else
+    {
 
-    
+        let min_degree = 4;
+        let min_degree_vertex = -1;
+        map.foreach[vertex](
+        vd => {
+            if(vertex_degree[map.cell[vertex](vd)] < min_degree)
+            {
+                min_degree_vertex = vd;
+                min_degree = vertex_degree[map.cell[vertex](vd)];
+            }
+        });
+        console.log(min_degree_vertex, min_degree);
+
+        if(min_degree == 3)
+        {
+            let min_degree_neigh = 5;
+            let min_degree_neigh_vertex = -1;
+            map.foreach_dart_of[vertex](min_degree_vertex, 
+            d0 => {
+                let d2 = map.phi2(d0);
+                if(vertex_degree[map.cell[vertex](d2)] < min_degree_neigh)
+                {
+                    min_degree_neigh_vertex = d2;
+                    min_degree_neigh = vertex_degree[map.cell[vertex](d2)];
+                }
+            });
+
+            console.log(min_degree_neigh_vertex, min_degree_neigh);
+            map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
+        }   
+        // map.merge_faces(max_degree_neigh_vertex);
+    }
+
+
     // map.foreach[map.edge](
     //     ed => {
     //         let vd0 = ed;
@@ -1278,3 +1312,92 @@ function remove_delaunay_edge(ed)
 
 }
 
+function get_edges_length(map)
+{
+    const vertex = map.vertex;
+    const edge = map.edge;
+
+    if(!map.is_embedded[edge]()){
+        map.create_embedding[edge]();
+        map.set_embeddings[edge]();    
+    }
+    const pos = map.get_attribute[vertex]("position");
+
+    const lengths = map.add_attribute[edge]("lengths");
+    map.foreach[edge](ed => {
+        lengths[map.cell[edge](ed)] = pos[map.cell[vertex](ed)].angleTo(pos[map.cell[vertex](map.phi2(ed))]);
+    });
+
+    return lengths;
+}
+
+function dijkstra_delaunay(vd0)
+{
+    const map = delaunay_map;
+    const edge = map.edge;
+    const vertex = map.vertex;
+    const lengths = get_edges_length(map);
+    console.log(lengths);
+    let graph = dijkstra(map, vd0, lengths);
+
+    scene.remove(delaunay_renderer.geodesics);
+
+    let col = map.add_attribute[edge]("colors");
+    map.foreach[edge](ed => {
+        col[map.cell[edge](ed)] = new THREE.Color(0, 0, 0);
+    })
+    map.foreach[vertex](vd => {
+        let ed = graph.previous[map.cell[vertex](vd)];
+        console.log(ed);
+        if(ed != -1)
+            col[map.cell[edge](ed)] = new THREE.Color(1, 0, 0);
+
+    });
+
+    delaunay_renderer.create_geodesics({edgeColors: col});
+    // delaunay_renderer.create_points({color: 0xFF0000});
+    scene.add(delaunay_renderer.geodesics);
+}
+
+function dijkstra(map, vd0, edge_dist)
+{
+    const vertex = map.vertex;
+    const edge = map.edge;
+    let visited = map.create_dart_marker();
+
+    let distance = map.add_attribute[vertex]("distance");
+    let previous = map.add_attribute[vertex]("previous");
+
+    map.foreach[vertex](vd => distance[map.cell[vertex](vd)] = Infinity);
+    distance[map.cell[vertex](vd0)] = 0;
+    previous[map.cell[vertex](vd0)] = -1;
+
+    let vertices = [vd0];
+    while(vertices.length)
+    {
+        let vd = vertices.shift();
+        let dist_vd = distance[map.cell[vertex](vd)];
+        map.foreach_dart_of[map.vertex](vd,
+            d0 => {
+                if(visited[d0])
+                    return;
+                
+                let d2 = map.phi2(d0);
+                visited[d0] = true;
+                visited[d2] = true;
+
+                let dist_d = distance[map.cell[vertex](d2)];
+                let new_dist = edge_dist[map.cell[edge](d0)] + dist_vd;
+                console.log(new_dist, dist_d);
+                if(new_dist < dist_d)
+                {
+                    distance[map.cell[vertex](d2)] = new_dist;
+                    previous[map.cell[vertex](d2)] = d0;
+
+                    vertices.push(d2);
+                }
+            });
+    }
+    // console.log(distance);console.log({distance, previous})
+    return {distance, previous};
+}
