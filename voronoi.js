@@ -111,3 +111,44 @@ function voronoi(del_map, set_ids)
     }
 	return voronoi_map;
 }
+
+function dijkstra(map, vd0, edge_dist)
+{
+    const vertex = map.vertex;
+    const edge = map.edge;
+    let visited = map.create_dart_marker();
+
+    let distance = map.add_attribute[vertex]("distance");
+    let previous = map.add_attribute[vertex]("previous");
+
+    map.foreach[vertex](vd => distance[map.cell[vertex](vd)] = Infinity);
+    distance[map.cell[vertex](vd0)] = 0;
+    previous[map.cell[vertex](vd0)] = -1;
+
+    let vertices = [vd0];
+    while(vertices.length)
+    {
+        let vd = vertices.shift();
+        let dist_vd = distance[map.cell[vertex](vd)];
+        map.foreach_dart_of[map.vertex](vd,
+            d0 => {
+                if(visited[d0])
+                    return;
+                
+                let d2 = map.phi2(d0);
+                visited[d0] = true;
+                visited[d2] = true;
+
+                let dist_d = distance[map.cell[vertex](d2)];
+                let new_dist = edge_dist[map.cell[edge](d0)] + dist_vd;
+                if(new_dist < dist_d)
+                {
+                    distance[map.cell[vertex](d2)] = new_dist;
+                    previous[map.cell[vertex](d2)] = d0;
+
+                    vertices.push(d2);
+                }
+            });
+    }
+    return {distance, previous};
+}
