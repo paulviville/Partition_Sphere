@@ -61,7 +61,7 @@ var test_sets = {
         create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
     },
 
-    nb_branches : 4,
+    nb_branches : 8,
     random: function(){
         this.reset();
         for(let i = 0; i < this.nb_branches; i++)
@@ -113,7 +113,7 @@ folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
-folder_test.add(test_sets, "nb_branches").min(3).max(800).step(1).onChange(require_update);
+folder_test.add(test_sets, "nb_branches").min(3).max(30).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
 
@@ -226,6 +226,9 @@ function onKeyUp(event)
             break;
         case 78: // n
             step_voronoi_remesh();
+            break;
+        case 66: // b
+            one_step_delaunay_remesh();
             break;
         case 82: //r
             reset_drawing()
@@ -1262,6 +1265,17 @@ function map_sort_vert_low_degree(map, degree){
     return vertices;
 }
 
+function sort_cache(map, emb, cache, crit, incr = true)
+{
+    cache.sort(function(a, b){
+        if(crit[map.cell[emb](incr? a : b)] < crit[map.cell[emb](incr? b : a)])
+            return -1;
+        if(crit[map.cell[emb](incr? a : b)] > crit[map.cell[emb](incr? b : a)])
+            return 1;
+        return 0;
+    });
+}
+
 function one_step_delaunay_remesh()
 {
     const map = delaunay_map;
@@ -1270,68 +1284,58 @@ function one_step_delaunay_remesh()
     const face = map.face;
     const vertex_degree = mark_vertex_degree(map);
 
-    let max_degree = 0;
-    let max_degree_vertex = -1;
+    let vertex_cache = [];
+    map.foreach[vertex](vd => vertex_cache.push(vd));
+
     let vertices = map_sort_vert_high_degree(map, vertex_degree);
+    sort_cache(map, vertex, vertices, vertex_degree, false);
+    vertices.forEach(vd => console.log("+ ", vd, vertex_degree[map.cell[vertex](vd)]));
+    // sort_cache(map, vertex, vertices, vertex_degree, false);
 
-
-    max_degree = vertex_degree[map.cell[vertex](vertices[0])]
-    max_degree_vertex = vertices[0];
-
-    if(max_degree > 4)
+    let vertices5 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] > 4);
+    if(vertices5.length)
     {   
-        let max_degree_neigh = 0;
-        let max_degree_neigh_vertex = -1;
-        map.foreach_dart_of[vertex](max_degree_vertex, 
+        let neighbors = [];
+        map.foreach_dart_of[vertex](vertices5[0], 
             d0 => {
-                let d2 = map.phi2(d0);
-                if(vertex_degree[map.cell[vertex](d2)] > max_degree_neigh)
-                {
-                    max_degree_neigh_vertex = d2;
-                    max_degree_neigh = vertex_degree[map.cell[vertex](d2)];
-                }
+                neighbors.push(map.phi2(d0));
             });
 
-        map.merge_faces(max_degree_neigh_vertex);
+        neighbors.forEach(vd => console.log("n ", vd, vertex_degree[map.cell[vertex](vd)]));
+        sort_cache(map, vertex, neighbors, vertex_degree, false);
+        
+        map.merge_faces(neighbors[0]);
     }
     else
     {
-
-        // let min_degree = 4;
-        // let min_degree_vertex = -1;
-        // map.foreach[vertex](
-        // vd => {
-        //     if(vertex_degree[map.cell[vertex](vd)] < min_degree)
-        //     {
-        //         min_degree_vertex = vd;
-        //         min_degree = vertex_degree[map.cell[vertex](vd)];
-        //     }
-        // });
-        // console.log(min_degree_vertex, min_degree);
-        vertices = map_sort_vert_low_degree(map, vertex_degree);
-        let min_degree = vertex_degree[map.cell[vertex](vertices[0])];
-        let min_degree_vertex = vertices[0];
-        if(min_degree == 3)
+        let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
+        if(vertices3.length)
         {
-            for(let i = 0; vertex_degree[map.cell[vertex](vertices[i])] == 3;++i)
+            for(let i = 0; i < vertices3.length;++i)
             {
-                console.log(vertices[i], vertex_degree[map.cell[vertex](vertices[i])])
+                console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
             }
-            // let min_degree_neigh = 5;
-            // let min_degree_neigh_vertex = -1;
-            // map.foreach_dart_of[vertex](min_degree_vertex, 
-            // d0 => {
-            //     let d2 = map.phi2(d0);
-            //     if(vertex_degree[map.cell[vertex](d2)] < min_degree_neigh)
-            //     {
-            //         min_degree_neigh_vertex = d2;
-            //         min_degree_neigh = vertex_degree[map.cell[vertex](d2)];
-            //     }
-            // });
 
+            if(vertices3.length == 2)
+            {
+                // dijkstra_delaunay(vertices3[0])
+                let lengths_topo = get_edges_length(map, true);
+                let graph = dijkstra(map, vertices3[0], lengths_topo)
+                lengths_topo.delete();
+                console.log(vertices3[0], vertices3[1], ' - ', graph.distance[map.cell[vertex](vertices3[1])]);
+
+                let dp = graph.previous[map.cell[vertex](vertices3[1])];
+                let path = [];
+                do
+                {
+                    path.push(dp);
+                    dp = graph.previous[map.cell[vertex](dp)];
+                } while(dp != -1)
+                console.log("path", path);
+            }
             // map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
         }   
-        // map.merge_faces(max_degree_neigh_vertex);
+
     }
 
 
@@ -1350,7 +1354,7 @@ function remove_delaunay_edge(ed)
 
 }
 
-function get_edges_length(map)
+function get_edges_length(map, topo = false)
 {
     const vertex = map.vertex;
     const edge = map.edge;
@@ -1363,21 +1367,21 @@ function get_edges_length(map)
 
     const lengths = map.add_attribute[edge]("lengths");
     map.foreach[edge](ed => {
-        lengths[map.cell[edge](ed)] = pos[map.cell[vertex](ed)].angleTo(pos[map.cell[vertex](map.phi2(ed))]);
+        lengths[map.cell[edge](ed)] = topo? 1 : pos[map.cell[vertex](ed)].angleTo(pos[map.cell[vertex](map.phi2(ed))]);
     });
 
     return lengths;
 }
 
-function dijkstra_delaunay(vd0)
+function dijkstra_delaunay(vd0, topo = false)
 {
     const map = delaunay_map;
     const edge = map.edge;
     const vertex = map.vertex;
-    const lengths = get_edges_length(map);
+    const lengths = get_edges_length(map, topo);
     console.log(lengths);
     let graph = dijkstra(map, vd0, lengths);
-
+    console.log("dijkstra:",graph.previous[map.cell[vertex](vd0)]);
     scene.remove(delaunay_renderer.geodesics);
 
     let col = map.add_attribute[edge]("colors");
