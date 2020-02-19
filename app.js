@@ -1580,75 +1580,75 @@ function one_step_delaunay_remesh()
         
     //     map.merge_faces(neighbors[0]);
     // }
-    // else
-    // {
-    //     let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
-    //     if(vertices3.length)
-    //     {
-    //         for(let i = 0; i < vertices3.length;++i)
-    //         {
-    //             // console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
-    //         }
+    else
+    {
+        let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
+        if(vertices3.length)
+        {
+            for(let i = 0; i < vertices3.length;++i)
+            {
+                // console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
+            }
 
-    //         // if(vertices3.length == 2)
-    //         // {
-    //             // dijkstra_delaunay(vertices3[0])
-    //             let lengths_topo = get_edges_length(map, true);
-    //             let graph = dijkstra(map, vertices3[0], lengths_topo)
-    //             lengths_topo.delete();
+            // if(vertices3.length == 2)
+            // {
+                // dijkstra_delaunay(vertices3[0])
+                let lengths_topo = get_edges_length(map, true);
+                let graph = dijkstra(map, vertices3[0], lengths_topo)
+                lengths_topo.delete();
 
-    //             let dp = graph.previous[map.cell[vertex](vertices3[1])];
-    //             // let dp1 = on_face(map, vertices3[0], vertices3[1]);
-    //             let dp0, dp1;
-    //             map.foreach_dart_of[vertex](vertices3[0],
-    //                 d0 => {
-    //                     d1 = on_face(map, d0, vertices3[1]); 
-    //                     if(d1 != -1)
-    //                     {
-    //                         dp0 = d0;
-    //                         dp1 = d1
-    //                     }
-    //                 });
+                let dp = graph.previous[map.cell[vertex](vertices3[1])];
+                // let dp1 = on_face(map, vertices3[0], vertices3[1]);
+                let dp0, dp1;
+                map.foreach_dart_of[vertex](vertices3[0],
+                    d0 => {
+                        d1 = on_face(map, d0, vertices3[1]); 
+                        if(d1 != -1)
+                        {
+                            dp0 = d0;
+                            dp1 = d1
+                        }
+                    });
 
-    //             if(dp1 != undefined && dp1 != -1)
-    //             {
-    //                 map.cut_face(dp0, dp1);
+                if(dp1 != undefined && dp1 != -1)
+                {
+                    map.cut_face(dp0, dp1);
 
-    //             }
-    //             else
-    //             {
-    //                 let path = [];
-    //                 do
-    //                 {
-    //                     path.push(dp);
-    //                     dp = graph.previous[map.cell[vertex](dp)];
-    //                 } while(dp != -1)
+                }
+                else
+                {
+                    let path = [];
+                    do
+                    {
+                        path.push(dp);
+                        dp = graph.previous[map.cell[vertex](dp)];
+                    } while(dp != -1)
                     
-    //                 if(!(path.length%2))
-    //                 {
-    //                     let d0 = path.shift();
-    //                     let d1 = map.phi1(d0);
-    //                     let d2 = map.phi_1(d0);
-    //                     map.cut_face(d1, d2);
-    //                     map.merge_faces(d2);
-    //                 }
-    //                 for(let i = 0; i < path.length; ++i)
-    //                 {
-    //                     if(!(i%2))
-    //                     {
-    //                         map.cut_face(path[i], map.phi1(path[i]));
-    //                     }
-    //                     else
-    //                         map.merge_faces(path[i]);
-    //                 }
+                    if(!(path.length%2))
+                    {
+                        let d0 = path.shift();
+                        let d1 = map.phi1(d0);
+                        let d2 = map.phi_1(d0);
+                        map.cut_face(d1, d2);
+                        map.merge_faces(d2);
+                    }
+                    for(let i = 0; i < path.length; ++i)
+                    {
+                        if(!(i%2))
+                        {
+                            map.cut_face(path[i], map.phi1(path[i]));
+                        }
+                        else
+                            map.merge_faces(path[i]);
+                    }
 
-    //                 lengths_topo.delete();
-    //             }
-    //         // }
-    //         // map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
-    //     }   
+                    lengths_topo.delete();
+                }
+            // }
+            // map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
+        }   
 
-    // }
+    }
 
     // map.foreach[map.edge](
     //     ed => {
