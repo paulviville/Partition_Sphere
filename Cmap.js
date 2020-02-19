@@ -565,7 +565,7 @@ function CMap2()
 					this.foreach_dart_of[this.face](fd, 
 						d => {
 							this.set_embedding[cmap2.face](d, fid0);
-							console.log("f:", d);
+							// console.log("f:", d);
 						});
 					this.delete_cell[this.face](this.cell[this.face](fid1));
 				}

@@ -61,6 +61,58 @@ var test_sets = {
         create_branch(new THREE.Vector3(-0.6340194340841504, -0.05912754393972449, -0.7710533643991638));
     },
 
+    test1: function() {
+        this.reset();
+        create_branch(new THREE.Vector3(-0.6276565934539953, -0.7455921050848702, 0.2239187654682791));
+        create_branch(new THREE.Vector3(-0.9068306237228633, 0.3661620610516991, -0.20876677160117116));
+        create_branch(new THREE.Vector3(0.4707099847884531, -0.7824444101851614, -0.40769210832495784));
+        create_branch(new THREE.Vector3(0.9013270363530408, 0.17521024641139252, -0.39611985950151907));
+        create_branch(new THREE.Vector3(0.4519145651677156, -0.8012036982533874, 0.3922318953047664));
+        create_branch(new THREE.Vector3(0.13341186579864678, 0.43335205502405194, -0.8912952768137822));
+        create_branch(new THREE.Vector3(-0.36643262283760847, -0.4609917373612048, -0.8082164010987689));
+        create_branch(new THREE.Vector3(0.007125294886228978, 0.9337292036457034, 0.35790921255528585));
+        create_branch(new THREE.Vector3(-0.7516533572498336, -0.026932391936045547, 0.659008252451862));
+        create_branch(new THREE.Vector3(0.5113106429393773, 0.06240311465902836, 0.8571273404213477));
+    },
+
+    test2: function(){
+        this.reset()
+        create_branch(new THREE.Vector3(-0.9215493002475541, 0.3867686065108028, -0.034013706515645205));
+        create_branch(new THREE.Vector3(0.142505825093407, 0.9793834628908725, -0.14317863817737472));
+        create_branch(new THREE.Vector3(-0.02855039549374546, 0.4271959509982842, 0.9037081909376634));
+        create_branch(new THREE.Vector3(0.9217688506358075, -0.3770129020865927, -0.09057294109047058));
+        create_branch(new THREE.Vector3(-0.13277509191658707, -0.9857401401966507, 0.10337867754825208));
+        create_branch(new THREE.Vector3(0.1655108524961652, -0.46615375509007373, -0.8690839052251621));
+    },
+
+    test_oct: function(){
+        this.reset()
+        create_branch(new THREE.Vector3(-0.5001, 0, 0.5));
+        create_branch(new THREE.Vector3(0.5, 0, 0.5001));
+        create_branch(new THREE.Vector3(0, 0.5, 0.5));
+        create_branch(new THREE.Vector3(0, -0.5001, 0.5));
+        create_branch(new THREE.Vector3(-0.5001, 0, -0.5));
+        create_branch(new THREE.Vector3(0.5, 0, -0.5001));
+        create_branch(new THREE.Vector3(0, 0.5, -0.5001));
+        create_branch(new THREE.Vector3(0, -0.5, -0.5));
+    },
+
+    test_trunc_oct: function(){
+        this.reset()
+        create_branch(new THREE.Vector3(-0.5001, 0, 0.5));
+        create_branch(new THREE.Vector3(0.5, 0, 0.5001));
+        create_branch(new THREE.Vector3(0, 0.5, 0.5));
+        create_branch(new THREE.Vector3(0, -0.5001, 0.5));
+        create_branch(new THREE.Vector3(-0.5001, 0, -0.5));
+        create_branch(new THREE.Vector3(0.5, 0, -0.5001));
+        create_branch(new THREE.Vector3(0, 0.5, -0.5001));
+        create_branch(new THREE.Vector3(0, -0.5, -0.5));
+        create_branch(new THREE.Vector3(0.5, 0.5, 0.0001));
+        create_branch(new THREE.Vector3(0.5, -0.5, 0.0));
+        create_branch(new THREE.Vector3(-0.5, 0.5001, -0.0001));
+        create_branch(new THREE.Vector3(-0.5001, -0.5, 0.0));
+    },
+
     nb_branches : 8,
     random: function(){
         this.reset();
@@ -113,6 +165,10 @@ folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
 folder_test.add(test_sets, "test0").onChange(require_update);
+folder_test.add(test_sets, "test1").onChange(require_update);
+folder_test.add(test_sets, "test2").onChange(require_update);
+folder_test.add(test_sets, "test_oct").onChange(require_update);
+folder_test.add(test_sets, "test_trunc_oct").onChange(require_update);
 folder_test.add(test_sets, "nb_branches").min(3).max(30).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
@@ -214,7 +270,7 @@ function onKeyDown(event)
 
 function onKeyUp(event)
 {
-    console.log(event.which);
+    // console.log(event.which);
     keys[event.which] = false;
     switch(event.which){
         case 8: // backspace
@@ -781,7 +837,7 @@ function test_voronoi_map()
     voronoi_renderer.create_points({color: colors.voronoi_points});
     scene.add(voronoi_renderer.points);
 
-    mark_face_degree(voronoi_map);
+    mark_face_degree0(voronoi_map);
     let face_degree = map.get_attribute[face]("face_degree");
     map.foreach[face](
         fd => {
@@ -827,7 +883,7 @@ function test_voronoi_map()
     scene.add(voronoi_renderer.geodesics);
 }
 
-function mark_face_degree(map)
+function mark_face_degree0(map)
 {
     const face = map.face;
     let face_degree = map.get_attribute[face]("face_degree");
@@ -1070,7 +1126,7 @@ function show_info_voronoi_map()
 
 function step_voronoi_remesh()
 {
-    mark_face_degree(voronoi_map);
+    mark_face_degree0(voronoi_map);
 
     const map = voronoi_map;
     const vertex = map.vertex;
@@ -1129,6 +1185,27 @@ function step_voronoi_remesh()
     test_voronoi_map();
 }
 
+
+function mark_vertex_degree(map)
+{
+    const vertex = map.vertex;
+    let vertex_degree = map.get_attribute[vertex]("vertex_degree");
+    if(!vertex_degree)
+        vertex_degree = map.add_attribute[vertex]("vertex_degree");
+
+    map.foreach[vertex](
+        vd => {
+            let n = 0;
+            map.foreach_dart_of[vertex](vd,
+                d => {
+                    ++n;
+                });
+
+            vertex_degree[map.cell[vertex](vd)] = n;
+        });
+    
+    return vertex_degree;
+}
 
 function mark_vertex_degree(map)
 {
@@ -1240,7 +1317,7 @@ function map_sort_vert_high_degree(map, degree){
         return 0;
     });
 
-    console.log(vertices);
+    // console.log(vertices);
     return vertices;
 }
 
@@ -1291,110 +1368,280 @@ function on_face(map, vd0, vd1)
     return d1;
 }
 
+function mark_face_degree(map)
+{
+    const face = map.face;
+    let face_degree = map.get_attribute[face]("face_degree");
+    if(!face_degree)
+        face_degree = map.add_attribute[face]("face_degree");
+
+    map.foreach[face](
+        fd => {
+            let n = 0;
+            map.foreach_dart_of[face](fd,
+                d => {
+                    ++n;
+                });
+
+                face_degree[map.cell[face](fd)] = n;
+        });
+    
+    return face_degree;
+}
+
+
+function mark_edge_max_angle(map, pos)
+{
+    const vertex = map.vertex;
+    const edge = map.edge;
+    let edge_angles = map.get_attribute[edge]("edge_angles");
+    if(!edge_angles)
+        edge_angles = map.add_attribute[edge]("edge_angles");
+
+    let angle = function(A, B, C){
+        let AB = (B.clone().sub(A)).normalize();
+        let AC = (C.clone().sub(A)).normalize();
+        let X = AB.clone().cross(AC).normalize();
+        let a = AB.angleTo(AC);
+        if(A.dot(X) < 0)
+            a = -a;
+        return a;
+    }
+
+
+    map.foreach[edge](ed => {
+        let e0 = ed;
+        let e1 = map.phi2(ed);
+
+        let A, B, C;
+        A = pos[map.cell[vertex](e0)];
+        B = pos[map.cell[vertex](e1)];
+        C = pos[map.cell[vertex](map.phi_1(e0))];
+        let a00 = angle(A, B, C);
+        C = B;
+        B = pos[map.cell[vertex](map.phi2(map.phi1(e1)))];
+        let a01 = angle(A, B, C);
+        let a0 = a00 + a01;
+
+        A = pos[map.cell[vertex](e1)];
+        B = pos[map.cell[vertex](e0)];
+        C = pos[map.cell[vertex](map.phi_1(e1))];
+        let a10 = angle(A, B, C);
+        C = B;
+        B = pos[map.cell[vertex](map.phi2(map.phi1(e0)))];
+        let a11 = angle(A, B, C);
+        let a1 = a10 + a11;
+
+        edge_angles[map.cell[edge](ed)] = Math.max(a0, a1)
+    })
+
+    return edge_angles;
+
+}
+
+function edge_attr_sum(map, emb, attr)
+{
+    const edge = map.edge;
+    let edge_sum = map.add_attribute[edge]("edge_sum");
+    map.foreach[edge](ed => {
+        edge_sum[map.cell[edge](ed)] =
+         attr[map.cell[emb](ed)];
+        edge_sum[map.cell[edge](map.phi2(ed))] += attr[map.cell[emb](map.phi2(ed))];
+    });
+
+    return edge_sum;
+}
+
+function edge_attr_min(map, emb, attr)
+{
+    const edge = map.edge;
+    let edge_min = map.add_attribute[edge]("edge_min");
+    map.foreach[edge](ed => {
+        edge_min[map.cell[edge](ed)] = Math.min(attr[map.cell[emb](ed)], attr[map.cell[emb](map.phi2(ed))])
+    });
+
+    return edge_min;
+}
+
+function edge_attr_max(map, emb, attr)
+{
+    const edge = map.edge;
+    let edge_max = map.add_attribute[edge]("edge_max");
+    map.foreach[edge](ed => {
+        edge_max[map.cell[edge](ed)] = Math.max(attr[map.cell[emb](ed)], attr[map.cell[emb](map.phi2(ed))])
+    });
+
+    return edge_max;
+}
+
+
 function one_step_delaunay_remesh()
 {
     const map = delaunay_map;
     const vertex = map.vertex;
     const edge = map.edge;
     const face = map.face;
+
+    if(!map.is_embedded[edge]())
+        map.set_embeddings[edge]();
+
     const vertex_degree = mark_vertex_degree(map);
+
+    let done = true;
+    map.foreach[vertex](vd => {
+        done &= (vertex_degree[map.cell[vertex](vd)] == 4); 
+    });
+    if(done){
+        console.log("remeshing done")
+        return;
+    }
+
+    const pos = map.get_attribute[vertex]("position");
+    const face_degree = mark_face_degree(map);
+    const edge_vert_sum = edge_attr_sum(map, vertex, vertex_degree);
+    const edge_face_sum = edge_attr_sum(map, face, face_degree);
+    const edge_vert_min = edge_attr_min(map, vertex, vertex_degree);
+    const edge_face_max = edge_attr_max(map, face, face_degree);
+    const edge_angle = mark_edge_max_angle(map, pos);
+    console.log(edge_vert_sum);
+    console.log(edge_face_sum);
+    console.log(edge_vert_min);
+    console.log(edge_face_max);
 
     let vertex_cache = [];
     map.foreach[vertex](vd => vertex_cache.push(vd));
 
+
     let vertices = map_sort_vert_high_degree(map, vertex_degree);
     sort_cache(map, vertex, vertices, vertex_degree, false);
-    vertices.forEach(vd => console.log("+ ", vd, vertex_degree[map.cell[vertex](vd)]));
-    // sort_cache(map, vertex, vertices, vertex_degree, false);
 
     let vertices5 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] > 4);
     if(vertices5.length)
     {   
-        let neighbors = [];
-        map.foreach_dart_of[vertex](vertices5[0], 
-            d0 => {
-                neighbors.push(map.phi2(d0));
-            });
+        let edge_cache_vert = [];
+        map.foreach[edge](ed => edge_cache_vert.push(ed));
+        let edge_cache_face = [];
+        map.foreach[edge](ed => edge_cache_face.push(ed));
+        let edge_cache_face_max = [];
+        map.foreach[edge](ed => edge_cache_face_max.push(ed));
+        let edge_cache_vert_min = [];
+        map.foreach[edge](ed => edge_cache_vert_min.push(ed));
 
-        neighbors.forEach(vd => console.log("n ", vd, vertex_degree[map.cell[vertex](vd)]));
-        sort_cache(map, vertex, neighbors, vertex_degree, false);
+        sort_cache(map, edge, edge_cache_vert, edge_vert_sum, false);
+        sort_cache(map, edge, edge_cache_face, edge_face_sum, false);
+        sort_cache(map, edge, edge_cache_face_max, edge_vert_sum, false);
+        sort_cache(map, edge, edge_cache_vert_min, edge_vert_sum, false);
+
+        let max_edge_deg = edge_vert_sum[map.cell[edge](edge_cache_vert[0])];
+        let max_edge_deg_cache = edge_cache_vert.filter(ed => {
+            return edge_vert_sum[map.cell[edge](ed)] == max_edge_deg;
+        })
+
+
+        sort_cache(map, edge, max_edge_deg_cache, edge_face_sum, true);
+
+        let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
+        let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
+        sort_cache(map, edge, min_angle_edges_cache, edge_angle);
+
+        map.merge_faces(min_angle_edges_cache[0]);
+    }
+
+
+
+
+
+    // let vertex_cache = [];
+    // map.foreach[vertex](vd => vertex_cache.push(vd));
+
+    // let vertices = map_sort_vert_high_degree(map, vertex_degree);
+    // sort_cache(map, vertex, vertices, vertex_degree, false);
+    // // vertices.forEach(vd => console.log("+ ", vd, vertex_degree[map.cell[vertex](vd)]));
+    // // sort_cache(map, vertex, vertices, vertex_degree, false);
+
+    // let vertices5 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] > 4);
+    // if(vertices5.length)
+    // {   
+    //     let neighbors = [];
+    //     map.foreach_dart_of[vertex](vertices5[0], 
+    //         d0 => {
+    //             neighbors.push(map.phi2(d0));
+    //         });
+
+    //     // neighbors.forEach(vd => console.log("n ", vd, vertex_degree[map.cell[vertex](vd)]));
+    //     sort_cache(map, vertex, neighbors, vertex_degree, false);
         
-        map.merge_faces(neighbors[0]);
-    }
-    else
-    {
-        let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
-        if(vertices3.length)
-        {
-            for(let i = 0; i < vertices3.length;++i)
-            {
-                console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
-            }
+    //     map.merge_faces(neighbors[0]);
+    // }
+    // else
+    // {
+    //     let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
+    //     if(vertices3.length)
+    //     {
+    //         for(let i = 0; i < vertices3.length;++i)
+    //         {
+    //             // console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
+    //         }
 
-            // if(vertices3.length == 2)
-            // {
-                // dijkstra_delaunay(vertices3[0])
-                let lengths_topo = get_edges_length(map, true);
-                let graph = dijkstra(map, vertices3[0], lengths_topo)
-                lengths_topo.delete();
-                console.log(vertices3[0], vertices3[1], ' - ', graph.distance[map.cell[vertex](vertices3[1])]);
+    //         // if(vertices3.length == 2)
+    //         // {
+    //             // dijkstra_delaunay(vertices3[0])
+    //             let lengths_topo = get_edges_length(map, true);
+    //             let graph = dijkstra(map, vertices3[0], lengths_topo)
+    //             lengths_topo.delete();
 
-                let dp = graph.previous[map.cell[vertex](vertices3[1])];
-                // let dp1 = on_face(map, vertices3[0], vertices3[1]);
-                let dp0, dp1;
-                map.foreach_dart_of[vertex](vertices3[0],
-                    d0 => {
-                        d1 = on_face(map, d0, vertices3[1]); 
-                        if(d1 != -1)
-                        {
-                            dp0 = d0;
-                            dp1 = d1
-                        }
-                    });
-                console.log("dps :", dp0, dp1);
+    //             let dp = graph.previous[map.cell[vertex](vertices3[1])];
+    //             // let dp1 = on_face(map, vertices3[0], vertices3[1]);
+    //             let dp0, dp1;
+    //             map.foreach_dart_of[vertex](vertices3[0],
+    //                 d0 => {
+    //                     d1 = on_face(map, d0, vertices3[1]); 
+    //                     if(d1 != -1)
+    //                     {
+    //                         dp0 = d0;
+    //                         dp1 = d1
+    //                     }
+    //                 });
 
-                if(dp1 != undefined && dp1 != -1)
-                {
-                    console.log(dp0, dp1);
-                    map.cut_face(dp0, dp1);
+    //             if(dp1 != undefined && dp1 != -1)
+    //             {
+    //                 map.cut_face(dp0, dp1);
 
-                }
-                else
-                {
-                    let path = [];
-                    do
-                    {
-                        path.push(dp);
-                        dp = graph.previous[map.cell[vertex](dp)];
-                    } while(dp != -1)
-                    console.log("path", path);
+    //             }
+    //             else
+    //             {
+    //                 let path = [];
+    //                 do
+    //                 {
+    //                     path.push(dp);
+    //                     dp = graph.previous[map.cell[vertex](dp)];
+    //                 } while(dp != -1)
                     
-                    if(!(path.length%2))
-                    {
-                        let d0 = path.shift();
-                        let d1 = map.phi1(d0);
-                        let d2 = map.phi_1(d0);
-                        map.cut_face(d1, d2);
-                        map.merge_faces(d2);
-                    }
-                    for(let i = 0; i < path.length; ++i)
-                    {
-                        if(!(i%2))
-                        {
-                            map.cut_face(path[i], map.phi1(path[i]));
-                        }
-                        else
-                            map.merge_faces(path[i]);
-                    }
+    //                 if(!(path.length%2))
+    //                 {
+    //                     let d0 = path.shift();
+    //                     let d1 = map.phi1(d0);
+    //                     let d2 = map.phi_1(d0);
+    //                     map.cut_face(d1, d2);
+    //                     map.merge_faces(d2);
+    //                 }
+    //                 for(let i = 0; i < path.length; ++i)
+    //                 {
+    //                     if(!(i%2))
+    //                     {
+    //                         map.cut_face(path[i], map.phi1(path[i]));
+    //                     }
+    //                     else
+    //                         map.merge_faces(path[i]);
+    //                 }
 
-                    lengths_topo.delete();
-                }
-            // }
-            // map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
-        }   
+    //                 lengths_topo.delete();
+    //             }
+    //         // }
+    //         // map.cut_face(min_degree_neigh_vertex, map.phi1(min_degree_neigh_vertex))
+    //     }   
 
-    }
-    vertex_degree.delete();
+    // }
 
     // map.foreach[map.edge](
     //     ed => {
@@ -1405,11 +1652,13 @@ function one_step_delaunay_remesh()
 
 
     modify_delaunay();
-}
 
-function remove_delaunay_edge(ed)
-{
-
+    vertex_degree.delete();
+    face_degree.delete();
+    edge_vert_sum.delete();
+    edge_face_sum.delete();
+    edge_vert_min.delete();
+    edge_face_max.delete();
 }
 
 function get_edges_length(map, topo = false)

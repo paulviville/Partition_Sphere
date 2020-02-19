@@ -199,7 +199,28 @@ function convex_hull(points)
 function barycenter(points)
 {
 	let bary = new THREE.Vector3();
-	points.forEach(p => bary.add(p));
+	points.forEach(p => {
+			bary.add(p)
+		});
+
 	bary.normalize();
+
+	if(points.length > 2)
+	{
+		let norm = new THREE.Vector3();
+		let v0, v1, vc;
+		for(let i = 2 ; i < points.length; ++i)
+		{
+			v0 = points[i - 1].clone().sub(points[0]);
+			v1 = points[i].clone().sub(points[0]);
+			vc = v0.cross(v1);
+			norm.add(vc);
+		}
+		norm.normalize();
+		if(norm.dot(bary) <0)
+			bary.negate();
+
+	}
+
 	return bary;
 }
