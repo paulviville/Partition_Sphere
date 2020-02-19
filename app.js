@@ -115,10 +115,17 @@ var test_sets = {
 
     nb_branches : 8,
     random: function(){
-        this.reset();
+		this.reset();
+
         for(let i = 0; i < this.nb_branches; i++)
         {
-            let v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+			let a0 = 2 * Math.PI * Math.random();
+			let a1 = Math.acos(2 * Math.random() - 1)
+			let u = Math.cos(a1);
+			let x = Math.sqrt(1 - u*u) * Math.cos(a0);
+			let y = Math.sqrt(1 - u*u) * Math.sin(a0);
+			let z = u;
+			let v = new THREE.Vector3(x, y, z);
 
             create_branch(v);
         }
