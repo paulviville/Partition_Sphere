@@ -203,6 +203,24 @@ var test_sets = {
         create_branch(new THREE.Vector3(-0.5001, -0.5, 0.0));
     },
 
+
+    test_ico: function()
+    {
+        this.reset();
+        create_branch(new THREE.Vector3(0.0 , 0.0, 0.5));
+        create_branch(new THREE.Vector3(0.447213 , 0.000000 , 0.223606));
+        create_branch(new THREE.Vector3( 0.138196 , 0.425325 , 0.223606));
+        create_branch(new THREE.Vector3(-0.361803 , 0.262865 , 0.223606));
+        create_branch(new THREE.Vector3(-0.361803 , -0.262865,  0.223606));
+        create_branch(new THREE.Vector3( 0.138196 , -0.425325,  0.223606));
+        create_branch(new THREE.Vector3( 0.361803 , 0.262865 , -0.223606));
+        create_branch(new THREE.Vector3(-0.138196 , 0.425325,  -0.223606));
+        create_branch(new THREE.Vector3(-0.4472135 , 0.000000,  -0.223606));
+        create_branch(new THREE.Vector3( -0.138196 , -0.425325,  -0.223606));
+        create_branch(new THREE.Vector3(  0.361803 , -0.262865 , -0.223606));
+        create_branch(new THREE.Vector3( 0.0 , 0.0 , -0.5));
+    },
+
     nb_branches : 8,
     random: function(){
 		this.reset();
@@ -274,6 +292,7 @@ folder_test_cases.add(test_sets, "test8").onChange(require_update);
 folder_test_cases.add(test_sets, "test_hex").onChange(require_update);
 folder_test_cases.add(test_sets, "test_oct").onChange(require_update);
 folder_test_cases.add(test_sets, "test_trunc_oct").onChange(require_update);
+folder_test_cases.add(test_sets, "test_ico").onChange(require_update);
 folder_test.add(test_sets, "nb_branches").min(3).max(30).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
@@ -1335,7 +1354,7 @@ function mark_vertex_degree(map)
 
 let barys;
 let dual;
-function modify_delaunay()
+function modify_delaunay(done = false)
 {
     const map = delaunay_map;
     const vertex = map.vertex;
@@ -1398,7 +1417,7 @@ function modify_delaunay()
     let dual_map = map_dual(delaunay_map, barycenter);
     let dual_renderer = Renderer_Spherical(dual_map);
 
-    dual_renderer.create_geodesics({color: colors.delaunay});
+    dual_renderer.create_geodesics({color: done? new THREE.Color(0.4, 0.0, 0.1) : new THREE.Color(0.1, 0.1, 0.8)});
     scene.remove(dual);
     dual = dual_renderer.geodesics;
     scene.add(dual_renderer.geodesics);
@@ -1600,6 +1619,7 @@ function one_step_delaunay_remesh()
     });
     if(done){
         console.log("remeshing done")
+        modify_delaunay(true)
         return;
     }
 
@@ -1610,10 +1630,10 @@ function one_step_delaunay_remesh()
     const edge_vert_min = edge_attr_min(map, vertex, vertex_degree);
     const edge_face_max = edge_attr_max(map, face, face_degree);
     const edge_angle = mark_edge_max_angle(map, pos);
-    console.log(edge_vert_sum);
-    console.log(edge_face_sum);
-    console.log(edge_vert_min);
-    console.log(edge_face_max);
+    // console.log(edge_vert_sum);
+    // console.log(edge_face_sum);
+    // console.log(edge_vert_min);
+    // console.log(edge_face_max);
 
     let vertex_cache = [];
     map.foreach[vertex](vd => vertex_cache.push(vd));
@@ -1653,40 +1673,22 @@ function one_step_delaunay_remesh()
         }
         if(i == edge_cache_angle.length && min_edge)
             map.merge_faces(min_edge);
-        // map.foreach[edge](ed => {
-        //     if(edge_vert_min[map.cell[edge](ed)] > 4)
-        //     {
-        //         console.log(edge_vert_min[map.cell[edge](ed)]);
-        //         return true;
-        //     }
-        // }, edge_cache_angle);
-
-        // let edge_cache_face = [];
-        // map.foreach[edge](ed => edge_cache_face.push(ed));
-        // let edge_cache_face_max = [];
-        // map.foreach[edge](ed => edge_cache_face_max.push(ed));
-        // let edge_cache_vert_min = [];
-        // map.foreach[edge](ed => edge_cache_vert_min.push(ed));
-
-        // sort_cache(map, edge, edge_cache_vert, edge_vert_sum, false);
-        // sort_cache(map, edge, edge_cache_face, edge_face_sum, false);
-        // sort_cache(map, edge, edge_cache_face_max, edge_vert_sum, false);
-        // sort_cache(map, edge, edge_cache_vert_min, edge_vert_sum, false);
-
-        // let max_edge_deg = edge_vert_sum[map.cell[edge](edge_cache_vert[0])];
-        // let max_edge_deg_cache = edge_cache_vert.filter(ed => {
-        //     return edge_vert_sum[map.cell[edge](ed)] == max_edge_deg;
-        // })
-
-
-        // sort_cache(map, edge, max_edge_deg_cache, edge_face_sum, true);
-
-        // let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
-        // let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
-        // sort_cache(map, edge, min_angle_edges_cache, edge_angle);
-        // min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
-        // map.merge_faces(min_angle_edges_cache[0]);
     }
+    // else
+    // {
+    //     map.foreach[face](
+    //         fd => {
+    //             let v3s = [];
+    //             map.foreach_dart_of[face](fd, 
+    //                 vd => {
+    //                     if(vertex_degree[map.cell[vertex](vd)] == 3)
+    //                         v3s.push(vd);
+    //                 });
+    //             if(v3s.length > 2)
+    //                 console.log(v3s);
+    //         }
+    //     )
+    // }
 
     // if(vertices5.length)
     // {   
@@ -1720,41 +1722,11 @@ function one_step_delaunay_remesh()
     // }
 
 
-
-
-
-    // let vertex_cache = [];
-    // map.foreach[vertex](vd => vertex_cache.push(vd));
-
-    // let vertices = map_sort_vert_high_degree(map, vertex_degree);
-    // sort_cache(map, vertex, vertices, vertex_degree, false);
-    // // vertices.forEach(vd => console.log("+ ", vd, vertex_degree[map.cell[vertex](vd)]));
-    // // sort_cache(map, vertex, vertices, vertex_degree, false);
-
-    // let vertices5 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] > 4);
-    // if(vertices5.length)
-    // {   
-    //     let neighbors = [];
-    //     map.foreach_dart_of[vertex](vertices5[0], 
-    //         d0 => {
-    //             neighbors.push(map.phi2(d0));
-    //         });
-
-    //     // neighbors.forEach(vd => console.log("n ", vd, vertex_degree[map.cell[vertex](vd)]));
-    //     sort_cache(map, vertex, neighbors, vertex_degree, false);
-        
-    //     map.merge_faces(neighbors[0]);
-    // }
     else
     {
         let vertices3 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] < 4);
         if(vertices3.length)
         {
-            for(let i = 0; i < vertices3.length;++i)
-            {
-                // console.log(vertices3[i], vertex_degree[map.cell[vertex](vertices3[i])])
-            }
-
             // if(vertices3.length == 2)
             // {
                 // dijkstra_delaunay(vertices3[0])
@@ -1815,14 +1787,6 @@ function one_step_delaunay_remesh()
 
     }
 
-    // map.foreach[map.edge](
-    //     ed => {
-    //         let vd0 = ed;
-    //         let vd1 = map.phi2(ed);
-            
-    //     });
-
-
     modify_delaunay();
 
     vertex_degree.delete();
@@ -1830,6 +1794,7 @@ function one_step_delaunay_remesh()
     edge_vert_sum.delete();
     edge_face_sum.delete();
     edge_vert_min.delete();
+    edge_angle.delete();
     edge_face_max.delete();
 }
 
@@ -1865,7 +1830,7 @@ function dijkstra_delaunay(vd0, topo = false)
 
     let col = map.add_attribute[edge]("colors");
     map.foreach[edge](ed => {
-        col[map.cell[edge](ed)] = new THREE.Color(0, 0, 0);
+        col[map.cell[edge](ed)] = new THREE.Color(1, 1, 1);
     })
     map.foreach[vertex](vd => {
         let ed = graph.previous[map.cell[vertex](vd)];
