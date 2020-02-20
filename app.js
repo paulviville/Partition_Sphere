@@ -153,6 +153,18 @@ var test_sets = {
         create_branch(new THREE.Vector3(0.2356037243612976, -0.9200289781078299, -0.3131095088127283));
     },
 
+    test8: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.5773460268515668, 0.7626789200850789, -0.2915346122445297));
+        create_branch(new THREE.Vector3(0.6004823548690478, 0.740338243412996, 0.3021923672614556));
+        create_branch(new THREE.Vector3(-0.699303031010024, 0.6927545962886952, -0.176256461274702));
+        create_branch(new THREE.Vector3(-0.887021729032969, -0.07765406409631424, 0.45515085252330073));
+        create_branch(new THREE.Vector3(-0.5361324329097976, -0.26296875900398214, -0.802128073421026));
+        create_branch(new THREE.Vector3(0.751750334569051, -0.04217611245113154, 0.6580977207176981));
+        create_branch(new THREE.Vector3(0.4850678292548788, 0.3936041472007726, 0.7808873006575996));
+        create_branch(new THREE.Vector3(0.767597655264949, 0.42554630316685943, 0.47927464307302114));
+    },
+
     test_hex: function(){
         this.reset();
         create_branch(new THREE.Vector3(-0.9215493002475541, 0.3867686065108028, -0.034013706515645205));
@@ -258,6 +270,7 @@ folder_test_cases.add(test_sets, "test4").onChange(require_update);
 folder_test_cases.add(test_sets, "test5").onChange(require_update);
 folder_test_cases.add(test_sets, "test6").onChange(require_update);
 folder_test_cases.add(test_sets, "test7").onChange(require_update);
+folder_test_cases.add(test_sets, "test8").onChange(require_update);
 folder_test_cases.add(test_sets, "test_hex").onChange(require_update);
 folder_test_cases.add(test_sets, "test_oct").onChange(require_update);
 folder_test_cases.add(test_sets, "test_trunc_oct").onChange(require_update);
@@ -1610,36 +1623,101 @@ function one_step_delaunay_remesh()
     sort_cache(map, vertex, vertices, vertex_degree, false);
 
     let vertices5 = vertex_cache.filter(vd => vertex_degree[map.cell[vertex](vd)] > 4);
+
+    // function deletable(ed)
+    // {
+        
+    // }
+
     if(vertices5.length)
     {   
-        let edge_cache_vert = [];
-        map.foreach[edge](ed => edge_cache_vert.push(ed));
-        let edge_cache_face = [];
-        map.foreach[edge](ed => edge_cache_face.push(ed));
-        let edge_cache_face_max = [];
-        map.foreach[edge](ed => edge_cache_face_max.push(ed));
-        let edge_cache_vert_min = [];
-        map.foreach[edge](ed => edge_cache_vert_min.push(ed));
+        let edge_cache_angle = [];
+        map.foreach[edge](ed => edge_cache_angle.push(ed));
+        sort_cache(map, edge, edge_cache_angle, edge_angle);
+        edge_cache_angle.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
 
-        sort_cache(map, edge, edge_cache_vert, edge_vert_sum, false);
-        sort_cache(map, edge, edge_cache_face, edge_face_sum, false);
-        sort_cache(map, edge, edge_cache_face_max, edge_vert_sum, false);
-        sort_cache(map, edge, edge_cache_vert_min, edge_vert_sum, false);
+        let min_edge = undefined;
+        let i;
+        for(i = 0; i < edge_cache_angle.length; ++i)
+        {
+            if(edge_vert_min[map.cell[edge](edge_cache_angle[i])] > 4)
+            {
+                console.log(edge_vert_min[map.cell[edge](edge_cache_angle[i])]);
+                map.merge_faces(edge_cache_angle[i]);
+                break;
+            }
+            if(edge_vert_sum [map.cell[edge](edge_cache_angle[i])] > 8 && edge_vert_min[map.cell[edge](edge_cache_angle[i])] == 4 && !min_edge)
+            {
+                min_edge = edge_cache_angle[i];
+            }
+        }
+        if(i == edge_cache_angle.length && min_edge)
+            map.merge_faces(min_edge);
+        // map.foreach[edge](ed => {
+        //     if(edge_vert_min[map.cell[edge](ed)] > 4)
+        //     {
+        //         console.log(edge_vert_min[map.cell[edge](ed)]);
+        //         return true;
+        //     }
+        // }, edge_cache_angle);
 
-        let max_edge_deg = edge_vert_sum[map.cell[edge](edge_cache_vert[0])];
-        let max_edge_deg_cache = edge_cache_vert.filter(ed => {
-            return edge_vert_sum[map.cell[edge](ed)] == max_edge_deg;
-        })
+        // let edge_cache_face = [];
+        // map.foreach[edge](ed => edge_cache_face.push(ed));
+        // let edge_cache_face_max = [];
+        // map.foreach[edge](ed => edge_cache_face_max.push(ed));
+        // let edge_cache_vert_min = [];
+        // map.foreach[edge](ed => edge_cache_vert_min.push(ed));
+
+        // sort_cache(map, edge, edge_cache_vert, edge_vert_sum, false);
+        // sort_cache(map, edge, edge_cache_face, edge_face_sum, false);
+        // sort_cache(map, edge, edge_cache_face_max, edge_vert_sum, false);
+        // sort_cache(map, edge, edge_cache_vert_min, edge_vert_sum, false);
+
+        // let max_edge_deg = edge_vert_sum[map.cell[edge](edge_cache_vert[0])];
+        // let max_edge_deg_cache = edge_cache_vert.filter(ed => {
+        //     return edge_vert_sum[map.cell[edge](ed)] == max_edge_deg;
+        // })
 
 
-        sort_cache(map, edge, max_edge_deg_cache, edge_face_sum, true);
+        // sort_cache(map, edge, max_edge_deg_cache, edge_face_sum, true);
 
-        let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
-        let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
-        sort_cache(map, edge, min_angle_edges_cache, edge_angle);
-        min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
-        map.merge_faces(min_angle_edges_cache[0]);
+        // let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
+        // let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
+        // sort_cache(map, edge, min_angle_edges_cache, edge_angle);
+        // min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
+        // map.merge_faces(min_angle_edges_cache[0]);
     }
+
+    // if(vertices5.length)
+    // {   
+    //     let edge_cache_vert = [];
+    //     map.foreach[edge](ed => edge_cache_vert.push(ed));
+    //     let edge_cache_face = [];
+    //     map.foreach[edge](ed => edge_cache_face.push(ed));
+    //     let edge_cache_face_max = [];
+    //     map.foreach[edge](ed => edge_cache_face_max.push(ed));
+    //     let edge_cache_vert_min = [];
+    //     map.foreach[edge](ed => edge_cache_vert_min.push(ed));
+
+    //     sort_cache(map, edge, edge_cache_vert, edge_vert_sum, false);
+    //     sort_cache(map, edge, edge_cache_face, edge_face_sum, false);
+    //     sort_cache(map, edge, edge_cache_face_max, edge_vert_sum, false);
+    //     sort_cache(map, edge, edge_cache_vert_min, edge_vert_sum, false);
+
+    //     let max_edge_deg = edge_vert_sum[map.cell[edge](edge_cache_vert[0])];
+    //     let max_edge_deg_cache = edge_cache_vert.filter(ed => {
+    //         return edge_vert_sum[map.cell[edge](ed)] == max_edge_deg;
+    //     })
+
+
+    //     sort_cache(map, edge, max_edge_deg_cache, edge_face_sum, true);
+
+    //     let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
+    //     let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
+    //     sort_cache(map, edge, min_angle_edges_cache, edge_angle);
+    //     min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
+    //     map.merge_faces(min_angle_edges_cache[0]);
+    // }
 
 
 
