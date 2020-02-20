@@ -50,7 +50,13 @@ var showing = {
 }
 
 var test_sets = {
+
     // example of test set
+    test: function(){
+        this.reset();
+        
+    },
+
     test0: function() {
         this.reset();
         create_branch(new THREE.Vector3(0.6022189360479403, 0.7368469495958743, 0.3072278078829223));
@@ -77,12 +83,14 @@ var test_sets = {
 
     test2: function(){
         this.reset();
-        create_branch(new THREE.Vector3(-0.9215493002475541, 0.3867686065108028, -0.034013706515645205));
-        create_branch(new THREE.Vector3(0.142505825093407, 0.9793834628908725, -0.14317863817737472));
-        create_branch(new THREE.Vector3(-0.02855039549374546, 0.4271959509982842, 0.9037081909376634));
-        create_branch(new THREE.Vector3(0.9217688506358075, -0.3770129020865927, -0.09057294109047058));
-        create_branch(new THREE.Vector3(-0.13277509191658707, -0.9857401401966507, 0.10337867754825208));
-        create_branch(new THREE.Vector3(0.1655108524961652, -0.46615375509007373, -0.8690839052251621));
+        create_branch(new THREE.Vector3(-0.5446325059499867, -0.23830022375253504, 0.8041072296790581));
+        create_branch(new THREE.Vector3(0.27208922155342546, 0.3072021483268136, -0.9119179215136861));
+        create_branch(new THREE.Vector3(-0.08400765405786662, -0.3138248737676877, 0.9457571901203758));
+        create_branch(new THREE.Vector3(0.9901952694905226, 0.09554344694266843, -0.1019057310699702));
+        create_branch(new THREE.Vector3(-0.22294551644001226, -0.7955700909899838, 0.5633502702772809));
+        create_branch(new THREE.Vector3(0.02033972531629098, -0.9275590798408413, -0.3731225656253853));
+        create_branch(new THREE.Vector3(0.8158780090259192, -0.5686191941655138, 0.10495373463800071));
+        create_branch(new THREE.Vector3(-0.6373444184278498, -0.7537733938264358, 0.160055499931251));
     },
 
     test3: function(){
@@ -107,6 +115,52 @@ var test_sets = {
         create_branch(new THREE.Vector3(-0.9812648975676954, -0.1564033846426378, 0.1125041424738988));
         create_branch(new THREE.Vector3(-0.6852970902048313, 0.2216455353988245, -0.6937154710647296));
         create_branch(new THREE.Vector3(0.7681835577408109, 0.6302304693733196, 0.11271014634963177));
+    },
+
+    test5: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.4481787062356545, 0.6116008861722498, -0.6519817507494007));
+        create_branch(new THREE.Vector3(-0.7370164681546367, 0.5880894888410481, -0.33310280512709595));
+        create_branch(new THREE.Vector3(0.275028075314595, 0.4876225433142143, 0.8286035318778979));
+        create_branch(new THREE.Vector3(0.3977630414400055, 0.5041356511167446, 0.766571463164063));
+        create_branch(new THREE.Vector3(0.7905688326468046, 0.5136753080142501, -0.3333745622928269));
+        create_branch(new THREE.Vector3(0.06402778587177498, -0.8198926477207042, 0.5689257322796109));
+        create_branch(new THREE.Vector3(0.5251612236288106, -0.023163484412576034, -0.8506874527031411));
+        create_branch(new THREE.Vector3(-0.6011923741165914, -0.014376553653484413, -0.7989749958597608));
+    },
+
+    test6: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.027196660105195617, -0.4941635043542969, -0.8689434806956108));
+        create_branch(new THREE.Vector3(0.6470485462708346, 0.6707188054057627, -0.36258028468722137));
+        create_branch(new THREE.Vector3(0.9726134647850051, 0.17121057048580168, 0.15719411144452652));
+        create_branch(new THREE.Vector3(-0.1445106689482451, 0.9194106156356515, -0.3657878981275955));
+        create_branch(new THREE.Vector3(0.2516027805814073, -0.24518563653923098, -0.9362585350417674));
+        create_branch(new THREE.Vector3(0.20953955935398344, -0.005552129799063867, 0.977784407178));
+        create_branch(new THREE.Vector3(-0.5006502313557405, 0.41629356342073376, -0.7589789291527869));
+        create_branch(new THREE.Vector3(0.03294193124505421, -0.9960777987531586, -0.0821209351926063));
+    },
+
+    test7: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.28357616533984337, -0.9321516979690052, -0.225117237066935));
+        create_branch(new THREE.Vector3(0.26789603351412383, 0.9634015329729511, -0.009444654189937462));
+        create_branch(new THREE.Vector3(-0.05186307606596817, 0.42349039472251804, -0.9044147869858948));
+        create_branch(new THREE.Vector3(0.6383216436907595, -0.007340228933726143, 0.7697347596640856));
+        create_branch(new THREE.Vector3(-0.8931096128777963, 0.42914382863726486, -0.1348732506015281));
+        create_branch(new THREE.Vector3(-0.5014265374523592, -0.6201751133910982, -0.6032862142208093));
+        create_branch(new THREE.Vector3(0.920654337944993, -0.2577968099039426, 0.2931490999925082));
+        create_branch(new THREE.Vector3(0.2356037243612976, -0.9200289781078299, -0.3131095088127283));
+    },
+
+    test_hex: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.9215493002475541, 0.3867686065108028, -0.034013706515645205));
+        create_branch(new THREE.Vector3(0.142505825093407, 0.9793834628908725, -0.14317863817737472));
+        create_branch(new THREE.Vector3(-0.02855039549374546, 0.4271959509982842, 0.9037081909376634));
+        create_branch(new THREE.Vector3(0.9217688506358075, -0.3770129020865927, -0.09057294109047058));
+        create_branch(new THREE.Vector3(-0.13277509191658707, -0.9857401401966507, 0.10337867754825208));
+        create_branch(new THREE.Vector3(0.1655108524961652, -0.46615375509007373, -0.8690839052251621));
     },
 
     test_oct: function(){
@@ -188,20 +242,25 @@ gui.add(showing, "dual").onChange(require_update);
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
 
-gui.add(showing, "quad_input").onChange(require_update);
-let folder_quad = gui.addFolder("Quad Input");
-folder_quad.addColor(colors, 'quad_input').onChange(require_update);
-folder_quad.addColor(colors, 'quad_input_seeds').onChange(require_update);
-folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
+// gui.add(showing, "quad_input").onChange(require_update);
+// let folder_quad = gui.addFolder("Quad Input");
+// folder_quad.addColor(colors, 'quad_input').onChange(require_update);
+// folder_quad.addColor(colors, 'quad_input_seeds').onChange(require_update);
+// folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
 
 let folder_test = gui.addFolder("Tests");
-folder_test.add(test_sets, "test0").onChange(require_update);
-folder_test.add(test_sets, "test1").onChange(require_update);
-folder_test.add(test_sets, "test2").onChange(require_update);
-folder_test.add(test_sets, "test3").onChange(require_update);
-folder_test.add(test_sets, "test4").onChange(require_update);
-folder_test.add(test_sets, "test_oct").onChange(require_update);
-folder_test.add(test_sets, "test_trunc_oct").onChange(require_update);
+let folder_test_cases = folder_test.addFolder("Cases");
+folder_test_cases.add(test_sets, "test0").onChange(require_update);
+folder_test_cases.add(test_sets, "test1").onChange(require_update);
+folder_test_cases.add(test_sets, "test2").onChange(require_update);
+folder_test_cases.add(test_sets, "test3").onChange(require_update);
+folder_test_cases.add(test_sets, "test4").onChange(require_update);
+folder_test_cases.add(test_sets, "test5").onChange(require_update);
+folder_test_cases.add(test_sets, "test6").onChange(require_update);
+folder_test_cases.add(test_sets, "test7").onChange(require_update);
+folder_test_cases.add(test_sets, "test_hex").onChange(require_update);
+folder_test_cases.add(test_sets, "test_oct").onChange(require_update);
+folder_test_cases.add(test_sets, "test_trunc_oct").onChange(require_update);
 folder_test.add(test_sets, "nb_branches").min(3).max(30).step(1).onChange(require_update);
 folder_test.add(test_sets, "random").onChange(require_update);
 gui.add(test_sets, "reset").onChange(require_update);
@@ -1432,8 +1491,10 @@ function mark_edge_max_angle(map, pos)
         edge_angles = map.add_attribute[edge]("edge_angles");
 
     let angle = function(A, B, C){
-        let AB = (B.clone().sub(A)).normalize();
-        let AC = (C.clone().sub(A)).normalize();
+        let sB = slerp(A, B, 0.01);
+        let sC = slerp(A, C, 0.01);
+        let AB = (sB.clone().sub(A)).normalize();
+        let AC = (sC.clone().sub(A)).normalize();
         let X = AB.clone().cross(AC).normalize();
         let a = AB.angleTo(AC);
         if(A.dot(X) < 0)
@@ -1576,7 +1637,7 @@ function one_step_delaunay_remesh()
         let max_face_sum = edge_face_sum[map.cell[edge](max_edge_deg_cache[0])];
         let min_angle_edges_cache = max_edge_deg_cache.filter(ed => {return edge_face_sum[map.cell[edge](ed)] == max_face_sum});
         sort_cache(map, edge, min_angle_edges_cache, edge_angle);
-        min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)]));
+        min_angle_edges_cache.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
         map.merge_faces(min_angle_edges_cache[0]);
     }
 
@@ -1741,3 +1802,16 @@ function dijkstra_delaunay(vd0, topo = false)
     scene.add(delaunay_renderer.geodesics);
 }
 
+function create_test_string()
+{
+    let s = "test: function(){\n\tthis.reset();\n";
+
+        points.forEach(p => {
+            s += "\tcreate_branch(new THREE.Vector3(";
+            s += p.x + ", ";
+            s += p.y + ", ";
+            s += p.z + "));\n";
+        });
+        s+= "},"
+    console.log(s);    
+}
