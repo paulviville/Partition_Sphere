@@ -207,13 +207,25 @@ function barycenter(points)
 
 	if(points.length > 2)
 	{
+		// let norm = new THREE.Vector3();
+		// let v0, v1, vc;
+		// for(let i = 0; i < points.length; ++i)
+		// {
+		// 	v0 = points[i].clone();			
+		// 	v1 = points[(i + 1) % points.length].clone();
+		// 	vc = v0.clone().cross(v1);
+		// 	norm.add(vc);
+		// }
+		// norm.normalize();
+
+
 		let norm = new THREE.Vector3();
 		let v0, v1, vc;
 		for(let i = 2 ; i < points.length; ++i)
 		{
 			v0 = points[i - 1].clone().sub(points[0]);
 			v1 = points[i].clone().sub(points[0]);
-			vc = v0.cross(v1);
+			vc = v0.clone().cross(v1);
 			norm.add(vc);
 		}
 		norm.normalize();
@@ -224,3 +236,4 @@ function barycenter(points)
 
 	return bary;
 }
+

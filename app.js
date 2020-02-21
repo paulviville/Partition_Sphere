@@ -165,6 +165,66 @@ var test_sets = {
         create_branch(new THREE.Vector3(0.767597655264949, 0.42554630316685943, 0.47927464307302114));
     },
 
+    test9: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.13251746436338382, 0.33614427282953724, 0.9324409630011989));
+        create_branch(new THREE.Vector3(-0.17305351971118477, -0.17524407059360472, 0.9691965719281895));
+        create_branch(new THREE.Vector3(-0.3795644638453172, 0.198894244824673, 0.9035330083408352));
+        create_branch(new THREE.Vector3(0.6064036628786762, 0.12776871018331687, 0.7848246647152574));
+        create_branch(new THREE.Vector3(-0.12981099446926536, 0.9618721508489021, 0.24073028711860797));
+        create_branch(new THREE.Vector3(-0.927190667721814, 0.037359530284770424, 0.37272205621143195));
+    },
+
+    test10: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.6236190866367248, -0.6434483807109233, 0.44392951708900047));
+        create_branch(new THREE.Vector3(-0.08072703416332824, 0.9951469597738571, 0.05626432624711566));
+        create_branch(new THREE.Vector3(-0.4337526178692141, 0.3032601020084404, -0.8484644818856202));
+        create_branch(new THREE.Vector3(-0.8438677227422293, -0.536419305901167, 0.011899360081713004));
+        create_branch(new THREE.Vector3(-0.3158266065399824, 0.07872264661478338, 0.945545503670449));
+        create_branch(new THREE.Vector3(0.2949149780032924, -0.6415986512611034, 0.7080793221449513));
+        create_branch(new THREE.Vector3(-0.42437929020861287, -0.9033309609216621, -0.062413084224228386));
+        create_branch(new THREE.Vector3(-0.8544929919624193, -0.04611370591000453, 0.5174120725440781));
+    },
+
+    test11: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(0.741061950735068, -0.5645775560978015, 0.36342725313791424));
+        create_branch(new THREE.Vector3(-0.15365650579414625, -0.9663930722988332, 0.20609247448646834));
+        create_branch(new THREE.Vector3(0.41796070037285793, 0.7839501132162291, -0.45905454243705257));
+        create_branch(new THREE.Vector3(0.16166470847557116, 0.7700432163080212, -0.6171693179764421));
+        create_branch(new THREE.Vector3(-0.8248504681547308, -0.2825476526750163, -0.48968206946217635));
+        create_branch(new THREE.Vector3(0.932249436411434, 0.2385582752539958, 0.27203113354614855));
+        create_branch(new THREE.Vector3(0.5109598194877845, -0.6933197703566375, -0.508161154459518));
+        create_branch(new THREE.Vector3(0.15344872979264268, -0.1258575989372832, 0.9801088470750412));
+    },
+
+    test12: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.6624374284494552, -0.13355463761250788, -0.737115874311132));
+        create_branch(new THREE.Vector3(0.5625057097452617, -0.3576552626256229, -0.7454327867891083));
+        create_branch(new THREE.Vector3(0.0061861207291213334, 0.9996975606326304, -0.02380166329258186));
+        create_branch(new THREE.Vector3(-0.35756470755933095, 0.01638861154530216, -0.9337445546398797));
+        create_branch(new THREE.Vector3(0.3079070246618862, 0.9043468594479113, 0.2955503712915353));
+        create_branch(new THREE.Vector3(-0.7457854200045149, -0.6655298320264132, 0.0295660276598616));
+        create_branch(new THREE.Vector3(0.90597704476018, -0.31410476008533517, -0.28380238557726234));
+        create_branch(new THREE.Vector3(0.8878966681221262, 0.4149278036002512, 0.1986817166653697));
+        create_branch(new THREE.Vector3(-0.8798772667351324, -0.11233749731051154, -0.4617318292913361));
+        create_branch(new THREE.Vector3(0.24571122208558616, -0.914112173699202, 0.3225289587558424));
+    },
+
+    test13: function(){
+        this.reset();
+        create_branch(new THREE.Vector3(-0.9299086471311466, 0.2652301475408677, 0.25479967979997564));
+        create_branch(new THREE.Vector3(0.888867477910072, 0.33681443377293535, -0.31059723745713674));
+        create_branch(new THREE.Vector3(-0.9096199189987865, -0.07428029018490877, -0.4087469161359959));
+        create_branch(new THREE.Vector3(0.1241807955209593, -0.5710348922866326, 0.8114790704725388));
+        create_branch(new THREE.Vector3(-0.4799809695005592, -0.2828723527419695, 0.8304224834212559));
+        create_branch(new THREE.Vector3(-0.6884165299724525, 0.535132163323622, 0.4896082607935325));
+        create_branch(new THREE.Vector3(0.7305998089213598, -0.6030914947775121, 0.32016334601434115));
+        create_branch(new THREE.Vector3(-0.11427624632745845, -0.8261986518304312, -0.5516672250903457));
+    },
+
     test_hex: function(){
         this.reset();
         create_branch(new THREE.Vector3(-0.9215493002475541, 0.3867686065108028, -0.034013706515645205));
@@ -272,12 +332,6 @@ gui.add(showing, "dual").onChange(require_update);
 let folder_delaunay = gui.addFolder("Delaunay Colors");
 folder_delaunay.addColor(colors, 'delaunay').onChange(require_update);
 
-// gui.add(showing, "quad_input").onChange(require_update);
-// let folder_quad = gui.addFolder("Quad Input");
-// folder_quad.addColor(colors, 'quad_input').onChange(require_update);
-// folder_quad.addColor(colors, 'quad_input_seeds').onChange(require_update);
-// folder_quad.addColor(colors, 'quad_input_points').onChange(require_update);
-
 let folder_test = gui.addFolder("Tests");
 let folder_test_cases = folder_test.addFolder("Cases");
 folder_test_cases.add(test_sets, "test0").onChange(require_update);
@@ -289,6 +343,11 @@ folder_test_cases.add(test_sets, "test5").onChange(require_update);
 folder_test_cases.add(test_sets, "test6").onChange(require_update);
 folder_test_cases.add(test_sets, "test7").onChange(require_update);
 folder_test_cases.add(test_sets, "test8").onChange(require_update);
+folder_test_cases.add(test_sets, "test9").onChange(require_update);
+folder_test_cases.add(test_sets, "test10").onChange(require_update);
+folder_test_cases.add(test_sets, "test11").onChange(require_update);
+folder_test_cases.add(test_sets, "test12").onChange(require_update);
+folder_test_cases.add(test_sets, "test13").onChange(require_update);
 folder_test_cases.add(test_sets, "test_hex").onChange(require_update);
 folder_test_cases.add(test_sets, "test_oct").onChange(require_update);
 folder_test_cases.add(test_sets, "test_trunc_oct").onChange(require_update);
@@ -907,6 +966,13 @@ function add_drawn_line(A, B)
     line.geometry.vertices = new_geodesic(A, B, 100);
     last_drawn_line.push(line);
     hand_drawn_lines.add(line);
+
+    material = new THREE.PointsMaterial({color: colors.points, size: colors.point_size / 50});
+    let geometry = new THREE.Geometry();
+    geometry.vertices.push(slerp(A, B, 0.5));
+    let point = new THREE.Points(geometry, material);
+    last_drawn_line.push(point);
+    hand_drawn_lines.add(point);
 }
 
 function add_point(A)
@@ -1654,7 +1720,6 @@ function one_step_delaunay_remesh()
         let edge_cache_angle = [];
         map.foreach[edge](ed => edge_cache_angle.push(ed));
         sort_cache(map, edge, edge_cache_angle, edge_angle);
-        edge_cache_angle.forEach(vd => console.log("angle ", vd, edge_angle[map.cell[edge](vd)].toPrecision(3)));
 
         let min_edge = undefined;
         let i;
@@ -1857,4 +1922,59 @@ function create_test_string()
         });
         s+= "},"
     console.log(s);    
+}
+
+function contract_poly(points = [], k_max = 1)
+{
+    let c = new THREE.Color(Math.random(), Math.random(), Math.random());
+    let ps0 = points.filter(p => {return true});
+    for(let k = 0; k < k_max; ++k)
+    {
+        let ps1 = [];
+
+        for(let i = 0; i < ps0.length; ++i)
+        {
+            ps1.push(ps0[i].clone().add(ps0[(i+1) % ps0.length]).multiplyScalar(0.5).normalize());
+        }
+        ps0 = ps1;
+        for(let i = 0; i < ps0.length; ++i)
+        {
+            // ps1.push(ps0[i].clone().add(ps0[(i+1) % ps0.length]).multiplyScalar(0.5).normalize());
+            let material = new THREE.LineBasicMaterial({linewidth: colors.line_width, color: c});
+            let line = new THREE.Line(new THREE.Geometry(), material);
+            line.geometry.vertices = new_geodesic(ps0[i], ps0[(i+1) % ps0.length], 100);
+            last_drawn_line.push(line);
+            hand_drawn_lines.add(line);
+        }
+        ps0.forEach(p => {
+            let material = new THREE.PointsMaterial({color: colors.points, size: colors.point_size / 50});
+            let geometry = new THREE.Geometry();
+            geometry.vertices.push(p.clone());
+    
+            let point = new THREE.Points(geometry, material);
+            last_drawn_line.push(point);
+            hand_drawn_lines.add(point)
+        })
+    }
+    console.log(ps0);
+
+    
+    
+
+
+
+    return ps0;
+}
+
+function contracted_face_barys(map, k_max = 1){
+    const pos = map.get_attribute[map.vertex]("position");
+    map.foreach[map.face](
+        fd => {
+            let points = [];
+            map.foreach_dart_of[map.face](fd,
+                d => {
+                    points.push(pos[map.cell[map.vertex](d)]);
+                });
+            contract_poly(points, k_max);
+        });
 }
