@@ -547,6 +547,10 @@ function onMouseDown(event)
                 {
                     add_point(intersections[0].point);
                 }
+                if(keys[79]) // o
+                {
+                    add_point(intersections[0].point.negate());
+                }
             }
             else
             {
