@@ -236,7 +236,13 @@ function CMap1()
 	// foreach edge
 	cmap1.foreach.push(func => { cmap1.foreach_dart(d => func(d))});
 	// foreach face
-	cmap1.foreach.push(func => {
+	cmap1.foreach.push(function(func, cache)
+	{
+		if(cache)
+		{
+			cache.forEach(vd => func(vd));
+			return;
+		}
 		let marker = cmap1.create_dart_marker();
 		cmap1.foreach_dart(
 			d => {

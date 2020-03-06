@@ -146,7 +146,7 @@ function convex_hull(points)
 	let ops = 0;
 
 	if(points.length == 3)
-		triangles.push([0, 1, 2]);
+		triangles.push([0, 1, 2],[0, 2, 1]);
 
 	for(let i = 0; i < points.length - 2; i++)
 	{
