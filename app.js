@@ -2080,3 +2080,20 @@ function contracted_face_barys(map, k_max = 1){
             contract_poly(points, k_max);
         });
 }
+
+function export_cgr()
+{
+	let cgr_str = "# D:3 NV:" + (points.length + 1)+ " NE:" + points.length +"\n";
+
+	points.forEach(pt => {
+		cgr_str += "v " + pt.x + " " + pt.y + " " + pt.z + " " + 0.15 + "\n";
+	})
+
+	for(let i = 0; i < points.length; ++i)
+	{
+		cgr_str += "e 0 " + (i + 1) + "\n";
+
+	}
+
+	return cgr_str;
+}
