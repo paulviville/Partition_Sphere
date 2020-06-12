@@ -466,7 +466,9 @@ function update()
 	{
 		requires_update = false;
 
-        update_delaunay((showing.delaunay || showing.voronoi) && points.length > 3 );
+		update_delaunay((showing.delaunay || showing.voronoi) && points.length > 3 );
+		if(showing.dual)(show_dual())
+		else hide_dual();
         update_voronoi(showing.voronoi && points.length > 3);
 
         update_iteration(showing.partition && points.length > 2);
@@ -817,6 +819,23 @@ function hide_voronoi()
     scene.remove(voronoi_renderer.points);
 }
 
+function show_dual()
+{
+	if(dual_renderer)
+	{
+		scene.remove(dual_renderer.geodesics);
+	}    
+	if(showing.dual) modify_delaunay();
+	scene.add(dual_renderer.geodesics);
+}
+
+function hide_dual()
+{
+	if(dual_renderer)
+	{
+		scene.remove(dual_renderer.geodesics);
+	}    
+}
 
 
 // ITERATIVE PARTITION
@@ -1488,6 +1507,7 @@ function mark_vertex_degree(map)
 
 let barys;
 let dual;
+var dual_renderer
 function modify_delaunay(done = false)
 {
     const map = delaunay_map;
@@ -1515,32 +1535,33 @@ function modify_delaunay(done = false)
                 col[map.cell[vertex](vd)] = new THREE.Color(0, 0, 1);
         });
 
-    let barys_geo = new THREE.Geometry();
-    map.foreach[map.face](
-        fd => {
-            let points = [];
-            map.foreach_dart_of[face](fd,
-                d => {
-                    points.push(pos[map.cell[vertex](d)]);
-                });
-            barys_geo.vertices.push(barycenter(points));
-        });
+    // let barys_geo = new THREE.Geometry();
+    // map.foreach[map.face](
+    //     fd => {
+    //         let points = [];
+    //         map.foreach_dart_of[face](fd,
+    //             d => {
+    //                 points.push(pos[map.cell[vertex](d)]);
+    //             });
+    //         barys_geo.vertices.push(contract_poly_bary(points));
+    //         // barys_geo.vertices.push(barycenter(points));
+    //     });
 
-    let material = new THREE.PointsMaterial(
-        {
-            size: 0.025,
-            color: 0xFF0000
-        });
+    // let material = new THREE.PointsMaterial(
+    //     {
+    //         size: 0.025,
+    //         color: 0xFF0000
+    //     });
 
 
-    if(barys)
-        {
-            scene.remove(barys);
-            // barys.geometry.dipose();
-        }
+    // if(barys)
+    //     {
+    //         scene.remove(barys);
+    //         // barys.geometry.dipose();
+    //     }
 
-    barys = new THREE.Points(barys_geo, material); 
-    scene.add(barys);
+    // barys = new THREE.Points(barys_geo, material); 
+    // scene.add(barys);
 
     scene.remove(delaunay_renderer.geodesics);
     delaunay_renderer.create_geodesics({vertexColors: col});
@@ -1548,13 +1569,14 @@ function modify_delaunay(done = false)
     scene.add(delaunay_renderer.geodesics);
     // scene.add(delaunay_renderer.points);
 
-    let dual_map = map_dual(delaunay_map, barycenter);
-    let dual_renderer = Renderer_Spherical(dual_map);
+    let dual_map = map_dual(delaunay_map, contract_poly_bary);
+    // let dual_map = map_dual(delaunay_map, barycenter);
+    dual_renderer = Renderer_Spherical(dual_map);
 
     dual_renderer.create_geodesics({color: done? new THREE.Color(0.4, 0.0, 0.1) : new THREE.Color(0.1, 0.1, 0.8)});
     scene.remove(dual);
     dual = dual_renderer.geodesics;
-    scene.add(dual_renderer.geodesics);
+    if(showing.dual) scene.add(dual_renderer.geodesics);
 
 }
 
@@ -2039,33 +2061,34 @@ function contract_poly(points = [], k_max = 1)
             ps1.push(ps0[i].clone().add(ps0[(i+1) % ps0.length]).multiplyScalar(0.5).normalize());
         }
         ps0 = ps1;
-        for(let i = 0; i < ps0.length; ++i)
-        {
-            // ps1.push(ps0[i].clone().add(ps0[(i+1) % ps0.length]).multiplyScalar(0.5).normalize());
-            let material = new THREE.LineBasicMaterial({linewidth: colors.line_width, color: c});
-            let line = new THREE.Line(new THREE.Geometry(), material);
-            line.geometry.vertices = new_geodesic(ps0[i], ps0[(i+1) % ps0.length], 100);
-            last_drawn_line.push(line);
-            hand_drawn_lines.add(line);
-        }
-        ps0.forEach(p => {
-            let material = new THREE.PointsMaterial({color: colors.points, size: colors.point_size / 50});
-            let geometry = new THREE.Geometry();
-            geometry.vertices.push(p.clone());
+        // for(let i = 0; i < ps0.length; ++i)
+        // {
+        //     // ps1.push(ps0[i].clone().add(ps0[(i+1) % ps0.length]).multiplyScalar(0.5).normalize());
+        //     let material = new THREE.LineBasicMaterial({linewidth: colors.line_width, color: c});
+        //     let line = new THREE.Line(new THREE.Geometry(), material);
+        //     line.geometry.vertices = new_geodesic(ps0[i], ps0[(i+1) % ps0.length], 100);
+        //     last_drawn_line.push(line);
+        //     hand_drawn_lines.add(line);
+        // }
+        // ps0.forEach(p => {
+        //     let material = new THREE.PointsMaterial({color: colors.points, size: colors.point_size / 50});
+        //     let geometry = new THREE.Geometry();
+        //     geometry.vertices.push(p.clone());
     
-            let point = new THREE.Points(geometry, material);
-            last_drawn_line.push(point);
-            hand_drawn_lines.add(point)
-        })
+        //     let point = new THREE.Points(geometry, material);
+        //     last_drawn_line.push(point);
+        //     hand_drawn_lines.add(point)
+        // })
     }
-    console.log(ps0);
-
-    
-    
-
-
+    // console.log(ps0);
 
     return ps0;
+}
+
+function contract_poly_bary(points = [], k_max = 1)
+{
+	let contracted_points = contract_poly(points, k_max);
+	return barycenter(contracted_points);
 }
 
 function contracted_face_barys(map, k_max = 1){
@@ -2096,4 +2119,21 @@ function export_cgr()
 	}
 
 	return cgr_str;
+}
+
+function testcgr(nb)
+{	
+	let str = "# D:3 NV:" + nb + " NE: " + (nb-1) + "\n";
+	str += "v 0 0 0 1\n"
+	str += "v -1 -1 0 1\n"
+	str += "v 1 -1 0 1\n"
+	for(let i = 3; i < nb; ++i)
+		str += "v 0 "+ (i-2) +" 0 1\n"
+
+	str += "e 0 1";
+	str += "e 0 2";
+	str += "e 0 3";
+	for(let i = 3; i < nb - 1; ++i)
+		str += "e "+ (i) +" " + (i + 1) +"\n"
+	return str;
 }
