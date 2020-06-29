@@ -747,7 +747,7 @@ function create_delaunay()
 function show_delaunay()
 {
 	showing.delaunay = true;
-	delaunay_renderer.create_geodesics({color: colors.delaunay});
+	delaunay_renderer.create_geodesics({width: 4, color: colors.delaunay});
     scene.add(delaunay_renderer.geodesics);
 
     if(showing.dual) modify_delaunay();
@@ -1564,7 +1564,7 @@ function modify_delaunay(done = false)
     // scene.add(barys);
 
     scene.remove(delaunay_renderer.geodesics);
-    delaunay_renderer.create_geodesics({vertexColors: col});
+    delaunay_renderer.create_geodesics({width: 4, vertexColors: col});
     // delaunay_renderer.create_points({color: 0xFF0000});
     scene.add(delaunay_renderer.geodesics);
     // scene.add(delaunay_renderer.points);
@@ -1573,7 +1573,7 @@ function modify_delaunay(done = false)
     // let dual_map = map_dual(delaunay_map, barycenter);
     dual_renderer = Renderer_Spherical(dual_map);
 
-    dual_renderer.create_geodesics({color: done? new THREE.Color(0.4, 0.0, 0.1) : new THREE.Color(0.1, 0.1, 0.8)});
+    dual_renderer.create_geodesics({width: 4, color: done? new THREE.Color(0.4, 0.0, 0.1) : new THREE.Color(0.7, 0.1, 0.1)});
     scene.remove(dual);
     dual = dual_renderer.geodesics;
     if(showing.dual) scene.add(dual_renderer.geodesics);
