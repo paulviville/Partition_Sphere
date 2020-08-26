@@ -474,6 +474,8 @@ function update()
         update_iteration(showing.partition && points.length > 2);
 
         update_quad_input(showing.quad_input && points.length > 2);
+        cube_aligned();
+        if(points.length) box.lookAt(points[0])
 	}
 }
 
@@ -651,6 +653,7 @@ function onMouseDown(event)
 
 var zero = new THREE.Vector3();
 var sphere;
+var box;
 var points;
 var branch_lines;
 var branch_points;
@@ -667,7 +670,7 @@ function init_scene()
     pointLight.position.set(1,1,1);
     scene.add(pointLight);
 
-    let sphere_mat = new THREE.MeshLambertMaterial({color: 0xEEEEEE, transparent: true, opacity: 0.90});
+    let sphere_mat = new THREE.MeshLambertMaterial({color: 0xEEEEEE, transparent: true, opacity: 0.50});
     let sphere_geom = new THREE.SphereGeometry( 0.995, 64, 64 );
     sphere = new THREE.Mesh(sphere_geom, sphere_mat);
     sphere.name = "sphere";
@@ -691,6 +694,11 @@ function init_scene()
     selector.material.visible = false;
     selector.name = "selector";
     scene.add(selector);
+
+    let box_mat = new THREE.MeshLambertMaterial({color: 0xEEAAAA, transparent: false, opacity: 0.90});
+    let box_geom = new THREE.BoxGeometry( 0.5, 0.5, 0.5, 1, 1, 1 );
+    box = new THREE.Mesh(box_geom, box_mat);
+    scene.add(box);
 }
 
 function create_branch(position)
@@ -2136,4 +2144,90 @@ function testcgr(nb)
 	for(let i = 3; i < nb - 1; ++i)
 		str += "e "+ (i) +" " + (i + 1) +"\n"
 	return str;
+}
+
+function cube_aligned()
+{
+    let epsilon = 0.1;
+    if(points.length > 1 && points.length <= 6)
+    {
+        let angles = [];
+        let anglesD = [];
+        for(let i = 0; i < points.length - 1; ++i)
+        {
+            for(let j = i + 1; j < points.length; ++j)
+            {
+                let s = points[i].angleTo(points[j]);
+                // if((s < epsilon && s > -epsilon) || (s < -1 + epsilon))
+                if((s < (Math.PI + epsilon) && s > (Math.PI - epsilon)) || (s < (Math.PI / 2 + epsilon) && s > (Math.PI / 2 - epsilon)))
+                {
+                    angles.push(s);
+                }
+                else
+                {
+                    anglesD.push(s);
+                }
+            }
+        }
+        console.log(angles, anglesD);
+    }
+}
+
+function sort_frame(v0, v1, v2)
+{
+
+}
+
+function find_frame()
+{
+	let nb_points = points.length;
+    if(nb_points > 2 && nb_points <= 6)
+    {
+		let epsilon = 0.3;
+		let angles_dot = new Array(nb_points * nb_points);
+		let end = false;
+        for(let i = 0; i < nb_points && !end; ++i)
+        {
+			for(let j = 0; j < nb_points && !end; ++j)
+			{
+				let angle_dot = points[i].dot(points[j]);
+				
+				if((Math.abs(angle_dot) < (1 + epsilon) && Math.abs(angle_dot) > (1 - epsilon)) || ((angle_dot < epsilon) && angle_dot > - epsilon))
+                {
+					angles_dot[i * nb_points + j] = Math.round(angle_dot);
+				}
+                else
+                {
+					console.log(angle_dot);
+					end = true;
+                }
+			}	
+		}
+		console.log(angles_dot);
+		let current_id = 0;
+        let axis_id = (new Array(nb_points)).fill(null);
+		console.log(axis_id);
+		for(let i = 0; i < nb_points; ++i)
+		{
+			if(axis_id[i] != null)
+				continue;
+			
+			let new_axis = true;
+			for(let j = 0; j < nb_points && new_axis; ++j)
+			{
+				if(angles_dot[i * nb_points + j] == -1)
+				{
+					new_axis = false;
+					axis_id[i] = current_id;
+					axis_id[j] = current_id;
+					current_id++;
+				}
+			}
+			if(new_axis)
+				axis_id[i] = current_id++;
+		}
+		console.log(current_id);
+		console.log(axis_id);
+		
+    }
 }
