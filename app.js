@@ -43,7 +43,7 @@ var colors = {
 
 var showing = {
     partition: false,
-    voronoi: true,
+    voronoi: false,
     delaunay: false,
     dual: false,
     quad_input: false,
@@ -655,6 +655,7 @@ function onMouseDown(event)
 var zero = new THREE.Vector3();
 var sphere;
 var corners;
+var edges_corners;
 // var box;
 var points;
 var branch_lines;
@@ -2179,12 +2180,13 @@ function sort_frame(axis_u)
 	return [axis_u[0].clone(),axis_u[1].clone(), up? axis_u[2].clone() : axis_u[2].clone().negate()];
 }
 
+var epsilon = Math.PI / 6;
+
 function find_frame()
 {
 	let nb_points = points.length;
     if(nb_points > 2 && nb_points <= 6)
     {
-		let epsilon = Math.PI / 6;
 		let angles_dot = new Array(nb_points * nb_points);
 		let end = false;
         for(let i = 0; i < nb_points && !end; ++i)
@@ -2279,6 +2281,7 @@ function create_corners()
 	scene.add(corners[5]);
 	scene.add(corners[6]);
 	scene.add(corners[7]);
+
 }
 
 function build_hex()
@@ -2328,4 +2331,38 @@ function build_hex()
 	corners[5].position.copy(pos5);
 	corners[6].position.copy(pos6);
 	corners[7].position.copy(pos7);
+
+	let edge_mat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+	const geometry = new THREE.Geometry();
+
+	scene.remove(edges_corners);
+	geometry.vertices.length = 0;
+	geometry.vertices.push(pos0);
+	geometry.vertices.push(pos1);
+	geometry.vertices.push(pos1);
+	geometry.vertices.push(pos2);
+	geometry.vertices.push(pos2);
+	geometry.vertices.push(pos3);
+	geometry.vertices.push(pos3);
+	geometry.vertices.push(pos0);
+	geometry.vertices.push(pos4);
+	geometry.vertices.push(pos5);
+	geometry.vertices.push(pos5);
+	geometry.vertices.push(pos6);
+	geometry.vertices.push(pos6);
+	geometry.vertices.push(pos7);
+	geometry.vertices.push(pos7);
+	geometry.vertices.push(pos4);
+	geometry.vertices.push(pos0);
+	geometry.vertices.push(pos4);
+	geometry.vertices.push(pos1);
+	geometry.vertices.push(pos5);
+	geometry.vertices.push(pos2);
+	geometry.vertices.push(pos6);
+	geometry.vertices.push(pos3);
+	geometry.vertices.push(pos7);
+	
+	geometry.verticesNeedUpdate = true;
+	edges_corners = new THREE.LineSegments(geometry, edge_mat);
+	scene.add(edges_corners);
 }
