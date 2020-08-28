@@ -475,7 +475,8 @@ function update()
 
         update_quad_input(showing.quad_input && points.length > 2);
         cube_aligned();
-        if(points.length) box.lookAt(points[0])
+		// if(points.length) box.lookAt(points[0])
+		if(points.length > 2 && points.length < 7) build_hex();
 	}
 }
 
@@ -653,7 +654,8 @@ function onMouseDown(event)
 
 var zero = new THREE.Vector3();
 var sphere;
-var box;
+var corners;
+// var box;
 var points;
 var branch_lines;
 var branch_points;
@@ -695,10 +697,7 @@ function init_scene()
     selector.name = "selector";
     scene.add(selector);
 
-    let box_mat = new THREE.MeshLambertMaterial({color: 0xEEAAAA, transparent: false, opacity: 0.90});
-    let box_geom = new THREE.BoxGeometry( 0.5, 0.5, 0.5, 1, 1, 1 );
-    box = new THREE.Mesh(box_geom, box_mat);
-    scene.add(box);
+	create_corners();
 }
 
 function create_branch(position)
@@ -2173,9 +2172,11 @@ function cube_aligned()
     }
 }
 
-function sort_frame(v0, v1, v2)
+function sort_frame(axis_u)
 {
-
+	let x_y = axis_u[0].clone().cross(axis_u[1]).normalize();
+	let up = axis_u[2].dot(x_y) > 0;
+	return [axis_u[0].clone(),axis_u[1].clone(), up? axis_u[2].clone() : axis_u[2].clone().negate()];
 }
 
 function find_frame()
@@ -2183,18 +2184,21 @@ function find_frame()
 	let nb_points = points.length;
     if(nb_points > 2 && nb_points <= 6)
     {
-		let epsilon = 0.3;
+		let epsilon = Math.PI / 6;
 		let angles_dot = new Array(nb_points * nb_points);
 		let end = false;
         for(let i = 0; i < nb_points && !end; ++i)
         {
 			for(let j = 0; j < nb_points && !end; ++j)
 			{
-				let angle_dot = points[i].dot(points[j]);
+				// let angle_dot = points[i].dot(points[j]);
+                let angle_dot = points[i].angleTo(points[j]);
 				
-				if((Math.abs(angle_dot) < (1 + epsilon) && Math.abs(angle_dot) > (1 - epsilon)) || ((angle_dot < epsilon) && angle_dot > - epsilon))
+				if(angle_dot < epsilon && angle_dot > - epsilon ||(angle_dot < (Math.PI + epsilon) && angle_dot > (Math.PI - epsilon)) || (angle_dot < (Math.PI / 2 + epsilon) && angle_dot > (Math.PI / 2 - epsilon)))
+				// if((Math.abs(angle_dot) < (1 + epsilon) && Math.abs(angle_dot) > (1 - epsilon)) || ((angle_dot < epsilon) && angle_dot > - epsilon))
                 {
-					angles_dot[i * nb_points + j] = Math.round(angle_dot);
+					angles_dot[i * nb_points + j] = Math.round(points[i].dot(points[j]));
+					console.log("angle", angle_dot)
 				}
                 else
                 {
@@ -2203,6 +2207,10 @@ function find_frame()
                 }
 			}	
 		}
+
+		if(end)
+			return null;
+
 		console.log(angles_dot);
 		let current_id = 0;
         let axis_id = (new Array(nb_points)).fill(null);
@@ -2229,5 +2237,95 @@ function find_frame()
 		console.log(current_id);
 		console.log(axis_id);
 		
-    }
+		let axis = new Array(3);
+		for(let i = 0; i < nb_points; ++i)
+		{
+			if(!axis[axis_id[i]])
+				axis[axis_id[i]] = points[i].clone();
+			else
+				axis[axis_id[i]].add(points[i].clone().negate()).normalize();
+		}
+		if(current_id == 2)
+			axis[2] = axis[0].clone().cross(axis[1]).normalize();
+
+		console.log("axis", axis);
+		axis = sort_frame(axis);
+		console.log(axis);
+
+		return axis;
+	}
+	return null;
+}
+
+
+function create_corners()
+{
+	corners = new Array(8);
+	let corner_mat = new THREE.MeshLambertMaterial({color: 0x440044});
+    let corner_geom = new THREE.SphereGeometry( 0.045, 32, 32 );
+    corners[0] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[1] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[2] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[3] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[4] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[5] = new THREE.Mesh(corner_geom, corner_mat);
+    corners[6] = new THREE.Mesh(corner_geom, corner_mat);
+	corners[7] = new THREE.Mesh(corner_geom, corner_mat);
+	scene.add(corners[0]);
+	scene.add(corners[1]);
+	scene.add(corners[2]);
+	scene.add(corners[3]);
+	scene.add(corners[4]);
+	scene.add(corners[5]);
+	scene.add(corners[6]);
+	scene.add(corners[7]);
+}
+
+function build_hex()
+{
+	let axis = find_frame();
+
+	let pos0 = new THREE.Vector3();
+	let pos1 = new THREE.Vector3();
+	let pos2 = new THREE.Vector3();
+	let pos3 = new THREE.Vector3();
+	let pos4 = new THREE.Vector3();
+	let pos5 = new THREE.Vector3();
+	let pos6 = new THREE.Vector3();
+	let pos7 = new THREE.Vector3();
+
+	if(axis){
+		pos0.addScaledVector(axis[0], 0.5);
+		pos0.addScaledVector(axis[1], -0.5);
+		pos0.addScaledVector(axis[2], -0.5);
+		pos1.addScaledVector(axis[0], -0.5);
+		pos1.addScaledVector(axis[1], -0.5);
+		pos1.addScaledVector(axis[2], -0.5);
+		pos2.addScaledVector(axis[0], -0.5);
+		pos2.addScaledVector(axis[1], 0.5);
+		pos2.addScaledVector(axis[2], -0.5);
+		pos3.addScaledVector(axis[0], 0.5);
+		pos3.addScaledVector(axis[1], 0.5);
+		pos3.addScaledVector(axis[2], -0.5);
+		pos4.addScaledVector(axis[0], 0.5);
+		pos4.addScaledVector(axis[1], -0.5);
+		pos4.addScaledVector(axis[2], 0.5);
+		pos5.addScaledVector(axis[0], -0.5);
+		pos5.addScaledVector(axis[1], -0.5);
+		pos5.addScaledVector(axis[2], 0.5);
+		pos6.addScaledVector(axis[0], -0.5);
+		pos6.addScaledVector(axis[1], 0.5);
+		pos6.addScaledVector(axis[2], 0.5);
+		pos7.addScaledVector(axis[0], 0.5);
+		pos7.addScaledVector(axis[1], 0.5);
+		pos7.addScaledVector(axis[2], 0.5);
+	}
+	corners[0].position.copy(pos0);
+	corners[1].position.copy(pos1);
+	corners[2].position.copy(pos2);
+	corners[3].position.copy(pos3);
+	corners[4].position.copy(pos4);
+	corners[5].position.copy(pos5);
+	corners[6].position.copy(pos6);
+	corners[7].position.copy(pos7);
 }
